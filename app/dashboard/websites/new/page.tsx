@@ -13,7 +13,7 @@ export default async function NewWebsitePage({ searchParams }: { searchParams: {
     <div className="mx-auto max-w-2xl">
       <h2 className="text-xl font-bold text-ink">Create website project</h2>
       <p className="mt-2 text-sm leading-6 text-muted">
-        Start with a draft. The guided industry and template step will be added in Phase 2.
+        Start with a draft, then choose your business category and design template.
       </p>
       <Card className="mt-5 p-6">
         <form action={createSiteAction} className="grid gap-4">
