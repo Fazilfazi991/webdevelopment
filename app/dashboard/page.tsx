@@ -1,7 +1,7 @@
 import { Plus } from "lucide-react";
+import { StatusBadge } from "@/components/status-badge";
 import { ButtonLink } from "@/components/ui/button";
 import { Card, EmptyState } from "@/components/ui/card";
-import { StatusBadge } from "@/components/status-badge";
 import { requireDashboardContext } from "@/lib/data";
 import { formatDate } from "@/lib/utils";
 
@@ -17,7 +17,7 @@ export default async function DashboardPage() {
         <p className="text-sm text-muted">Welcome back</p>
         <h2 className="mt-1 text-xl font-bold text-ink">{profile?.full_name ?? "Business owner"}</h2>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
-          Your workspace is ready for guided website setup. Phase 2 will add industry and template discovery.
+          Your workspace is ready. Create a website, choose the right business category, and select a prepared design template.
         </p>
       </section>
 
@@ -52,7 +52,7 @@ export default async function DashboardPage() {
                 <div key={site.id} className="flex flex-wrap items-center justify-between gap-3 rounded-app border border-line p-4">
                   <div>
                     <p className="font-semibold text-ink">{site.name}</p>
-                    <p className="mt-1 text-sm text-muted">/{site.slug} · Updated {formatDate(site.updated_at)}</p>
+                    <p className="mt-1 text-sm text-muted">/{site.slug} - Updated {formatDate(site.updated_at)}</p>
                   </div>
                   <StatusBadge status={site.status} />
                 </div>
@@ -60,7 +60,7 @@ export default async function DashboardPage() {
             ) : (
               <EmptyState
                 title="No websites yet"
-                description="Create your first draft website. Industry and template selection arrives in the next milestone."
+                description="Create your first draft website and follow a simple guided setup."
                 action={<ButtonLink href="/dashboard/websites/new">Create website</ButtonLink>}
               />
             )}
@@ -70,7 +70,14 @@ export default async function DashboardPage() {
         <Card className="p-5">
           <h2 className="text-lg font-bold text-ink">Getting started</h2>
           <div className="mt-4 grid gap-3">
-            {["Create organisation", "Create first website draft", "Choose industry in Phase 2", "Select template in Phase 2"].map((item, index) => (
+            {[
+              "Create your organisation",
+              "Create your first website",
+              "Choose your business category",
+              "Select a design template",
+              "Add your business details",
+              "Preview and publish"
+            ].map((item, index) => (
               <div key={item} className="flex items-center gap-3 rounded-app border border-line px-3 py-3">
                 <span className="flex size-7 items-center justify-center rounded-full bg-brand-50 text-sm font-bold text-brand-700">
                   {index + 1}

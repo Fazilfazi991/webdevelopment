@@ -90,6 +90,7 @@ export async function createSiteAction(formData: FormData) {
       status: "draft",
       country_code: organization.country_code,
       default_language: "en",
+      setup_step: "website_type",
       created_by: user.id
     })
     .select("id")
@@ -98,7 +99,7 @@ export async function createSiteAction(formData: FormData) {
   if (error || !site) redirect(`/dashboard/websites/new?error=${encodeURIComponent(error?.message ?? "Could not create website.")}`);
 
   revalidatePath("/dashboard");
-  redirect(`/dashboard/websites/${site.id}/setup`);
+  redirect(`/dashboard/websites/${site.id}/setup/type`);
 }
 
 export async function updateProfileAction(formData: FormData) {

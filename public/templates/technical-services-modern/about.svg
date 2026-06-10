@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900" role="img" aria-label="Neutral maintenance tools placeholder">
+  <rect width="1200" height="900" fill="#f7f5f0"/>
+  <rect x="110" y="110" width="980" height="680" rx="28" fill="#ffffff"/>
+  <rect x="220" y="230" width="360" height="72" rx="18" fill="#0f766e"/>
+  <rect x="220" y="350" width="560" height="42" rx="12" fill="#d8c3a5"/>
+  <rect x="220" y="430" width="420" height="42" rx="12" fill="#cad8d2"/>
+  <circle cx="820" cy="430" r="150" fill="#134e4a" opacity=".9"/>
+  <rect x="720" y="610" width="250" height="60" rx="16" fill="#9fb4ad"/>
+</svg>
