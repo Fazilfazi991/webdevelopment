@@ -220,7 +220,7 @@ with check (id = auth.uid());
 drop policy if exists "Members can view organizations" on public.organizations;
 create policy "Members can view organizations"
 on public.organizations for select
-using (created_by = auth.uid() or public.is_org_member(id) or public.is_platform_admin());
+using (public.is_org_member(id) or public.is_platform_admin());
 
 drop policy if exists "Authenticated users can create organizations" on public.organizations;
 create policy "Authenticated users can create organizations"

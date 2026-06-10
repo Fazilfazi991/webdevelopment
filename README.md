@@ -43,6 +43,10 @@ Open the SQL editor in the dedicated Supabase project and apply:
 
 `supabase/migrations/001_phase1_foundation.sql`
 
+If you already applied the Phase 1 SQL before the RLS tightening patch was added, also apply:
+
+`supabase/migrations/002_phase1_rls_tightening.sql`
+
 After registering your first user, make that user an admin manually:
 
 ```sql

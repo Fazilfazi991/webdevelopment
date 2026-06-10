@@ -32,23 +32,26 @@ export async function createOrganizationAction(formData: FormData) {
   const { data: existing } = await supabase.from("organizations").select("id").eq("slug", input.data.slug).maybeSingle();
   if (existing) redirect("/onboarding?error=That organisation slug is already taken.");
 
-  const { data: organization, error } = await supabase
+  const organizationId = crypto.randomUUID();
+  const { error } = await supabase
     .from("organizations")
     .insert({
+      id: organizationId,
       name: input.data.name,
       slug: input.data.slug,
       country_code: input.data.countryCode,
       default_currency: input.data.defaultCurrency,
       timezone: input.data.timezone,
       created_by: user.id
-    })
-    .select("id")
-    .single();
+    });
 
-  if (error || !organization) redirect(`/onboarding?error=${encodeURIComponent(error?.message ?? "Could not create organisation.")}`);
+  if (error) {
+    const message = error.code === "23505" ? "That organisation slug is already taken." : error.message;
+    redirect(`/onboarding?error=${encodeURIComponent(message)}`);
+  }
 
   const { error: memberError } = await supabase.from("organization_members").insert({
-    organization_id: organization.id,
+    organization_id: organizationId,
     user_id: user.id,
     role: "owner"
   });
