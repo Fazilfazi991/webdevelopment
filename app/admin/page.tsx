@@ -2,22 +2,24 @@ import { Card, EmptyState } from "@/components/ui/card";
 import { requireAdmin } from "@/lib/data";
 
 export default async function AdminPage() {
-  const { state } = await requireAdmin();
-  const customers = state.profile ? 1 : 0;
-  const organizations = state.organization ? 1 : 0;
-  const websites = state.sites.length;
-  const drafts = state.sites.filter((site) => site.status === "draft").length;
-  const published = state.sites.filter((site) => site.status === "published").length;
+  const { supabase } = await requireAdmin();
+  const [{ count: customers }, { count: organizations }, { count: websites }, { count: drafts }, { count: published }] = await Promise.all([
+    supabase.from("profiles").select("id", { count: "exact", head: true }),
+    supabase.from("organizations").select("id", { count: "exact", head: true }),
+    supabase.from("sites").select("id", { count: "exact", head: true }),
+    supabase.from("sites").select("id", { count: "exact", head: true }).eq("status", "draft"),
+    supabase.from("sites").select("id", { count: "exact", head: true }).eq("status", "published")
+  ]);
 
   return (
     <div className="grid gap-6">
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         {[
-          ["Total customers", customers],
-          ["Organisations", organizations],
-          ["Total websites", websites],
-          ["Draft websites", drafts],
-          ["Published websites", published]
+          ["Total customers", customers ?? 0],
+          ["Organisations", organizations ?? 0],
+          ["Total websites", websites ?? 0],
+          ["Draft websites", drafts ?? 0],
+          ["Published websites", published ?? 0]
         ].map(([label, value]) => (
           <Card key={label} className="p-5">
             <p className="text-sm font-semibold text-muted">{label}</p>

@@ -1,9 +1,11 @@
-# Supabase Placeholder
+# Supabase Manual Setup
 
-This folder is a planning placeholder for Phase 1.
+This folder contains SQL for the dedicated Website Builder Supabase project only.
 
-Do not apply these files to any existing Supabase project. In particular, do not reuse Plumlet credentials, Plumlet migrations, or Plumlet database access for this app.
+Target project:
 
-When the project is ready for a real backend, create a brand-new Supabase project for this website builder, copy the SQL from `migrations/000_placeholder_phase1_schema.sql`, review it, and apply it only to that separate project.
+`https://caaacypgmlbkmmgobsdc.supabase.co`
 
-The current app runs in demo mode using a secure local cookie. No Supabase project is contacted.
+Do not apply these files to Plumlet or any existing product database.
+
+Apply `migrations/001_phase1_foundation.sql` manually in the Supabase SQL editor for this project.

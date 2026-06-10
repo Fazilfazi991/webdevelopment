@@ -1,12 +1,12 @@
 # Guided Website Builder
 
-Phase 1 demo foundation for a guided, multi-tenant website-builder SaaS.
+Phase 1 foundation for a guided, multi-tenant website-builder SaaS.
 
-This project is intentionally isolated from Plumlet. It does not connect to Supabase yet. The current app uses demo cookie state so the product flow can be reviewed safely without touching any external database.
+This project is intentionally isolated from Plumlet. It is configured for the dedicated Supabase project at `https://caaacypgmlbkmmgobsdc.supabase.co`.
 
-## What Works In Demo Mode
+## What Works
 
-- Register and log in with demo auth
+- Register and log in with Supabase Auth
 - Create an organisation
 - Create draft website projects
 - View dashboard overview metrics
@@ -22,7 +22,7 @@ This project is intentionally isolated from Plumlet. It does not connect to Supa
 - Tailwind CSS
 - Zod validation
 - Server actions
-- Supabase schema placeholder for a future separate project
+- Supabase schema and RLS SQL for manual setup
 
 ## Local Setup
 
@@ -35,16 +35,20 @@ Open `http://localhost:3000`.
 
 ## Environment
 
-Copy `.env.example` to `.env.local` if needed. Supabase variables are intentionally commented out until a new, separate Supabase project is created for this app.
+`.env.local` should contain this app's dedicated Supabase URL and anon key only. Do not reuse another product's credentials.
 
-## Supabase Safety
+## Manual Supabase Setup
 
-Do not apply `supabase/migrations/000_placeholder_phase1_schema.sql` to Plumlet or any existing product database. It is documentation for a future dedicated project only.
+Open the SQL editor in the dedicated Supabase project and apply:
 
-## Future Backend Steps
+`supabase/migrations/001_phase1_foundation.sql`
 
-1. Create a brand-new Supabase project for this app.
-2. Review the placeholder SQL.
-3. Add full RLS policies and storage bucket policies.
-4. Add a seed script for the first platform admin.
-5. Replace demo cookie state with Supabase Auth and Postgres queries.
+After registering your first user, make that user an admin manually:
+
+```sql
+insert into public.platform_admins (user_id)
+select id from auth.users where email = 'your-email@example.com'
+on conflict (user_id) do nothing;
+```
+
+Never apply these SQL files to Plumlet or any existing product database.

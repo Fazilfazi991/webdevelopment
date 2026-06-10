@@ -8,8 +8,11 @@ import { countries, currencies, timezones } from "@/lib/constants";
 import { getCurrentUser } from "@/lib/data";
 
 export default async function OnboardingPage({ searchParams }: { searchParams: { error?: string } }) {
-  const { user } = await getCurrentUser();
+  const { supabase, user } = await getCurrentUser();
   if (!user) redirect("/auth/login");
+
+  const { data: memberships } = await supabase.from("organization_members").select("id").eq("user_id", user.id).limit(1);
+  if (memberships?.length) redirect("/dashboard");
 
   return (
     <main className="min-h-screen bg-canvas px-4 py-8">

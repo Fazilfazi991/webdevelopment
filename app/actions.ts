@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { countries, currencies, languages, timezones } from "@/lib/constants";
-import { readDemoState, timestamp, writeDemoState } from "@/lib/demo-store";
 import { requireDashboardContext, requireUser } from "@/lib/data";
 import { organizationSchema, profileSchema, siteSchema } from "@/lib/validators/onboarding";
 
@@ -16,8 +15,7 @@ function isAllowed<T extends readonly { value: string }[]>(list: T, candidate: s
 }
 
 export async function createOrganizationAction(formData: FormData) {
-  const { user } = await requireUser();
-  const state = readDemoState();
+  const { supabase, user } = await requireUser();
   const input = organizationSchema.safeParse({
     name: value(formData, "name"),
     slug: value(formData, "slug"),
@@ -31,28 +29,38 @@ export async function createOrganizationAction(formData: FormData) {
     redirect("/onboarding?error=Choose supported market settings.");
   }
 
-  const createdAt = timestamp();
-  state.organization = {
-    id: crypto.randomUUID(),
-    name: input.data.name,
-    slug: input.data.slug,
-    country_code: input.data.countryCode,
-    default_currency: input.data.defaultCurrency,
-    timezone: input.data.timezone,
-    created_by: user.id,
-    created_at: createdAt,
-    updated_at: createdAt
-  };
-  state.membershipRole = "owner";
-  writeDemoState(state);
+  const { data: existing } = await supabase.from("organizations").select("id").eq("slug", input.data.slug).maybeSingle();
+  if (existing) redirect("/onboarding?error=That organisation slug is already taken.");
+
+  const { data: organization, error } = await supabase
+    .from("organizations")
+    .insert({
+      name: input.data.name,
+      slug: input.data.slug,
+      country_code: input.data.countryCode,
+      default_currency: input.data.defaultCurrency,
+      timezone: input.data.timezone,
+      created_by: user.id
+    })
+    .select("id")
+    .single();
+
+  if (error || !organization) redirect(`/onboarding?error=${encodeURIComponent(error?.message ?? "Could not create organisation.")}`);
+
+  const { error: memberError } = await supabase.from("organization_members").insert({
+    organization_id: organization.id,
+    user_id: user.id,
+    role: "owner"
+  });
+
+  if (memberError) redirect(`/onboarding?error=${encodeURIComponent(memberError.message)}`);
 
   revalidatePath("/", "layout");
   redirect("/dashboard");
 }
 
 export async function createSiteAction(formData: FormData) {
-  const { user, organization } = await requireDashboardContext();
-  const state = readDemoState();
+  const { supabase, user, organization } = await requireDashboardContext();
   const input = siteSchema.safeParse({
     name: value(formData, "name"),
     slug: value(formData, "slug"),
@@ -61,33 +69,37 @@ export async function createSiteAction(formData: FormData) {
 
   if (!input.success) redirect(`/dashboard/websites/new?error=${encodeURIComponent(input.error.errors[0].message)}`);
 
-  const existing = state.sites.find((site) => site.organization_id === organization.id && site.slug === input.data.slug);
+  const { data: existing } = await supabase
+    .from("sites")
+    .select("id")
+    .eq("organization_id", organization.id)
+    .eq("slug", input.data.slug)
+    .maybeSingle();
   if (existing) redirect("/dashboard/websites/new?error=That website slug already exists in this organisation.");
 
-  const createdAt = timestamp();
-  const site = {
-    id: crypto.randomUUID(),
-    organization_id: organization.id,
-    name: input.data.name,
-    slug: input.data.slug,
-    website_type: input.data.websiteType,
-    status: "draft" as const,
-    country_code: organization.country_code,
-    default_language: "en",
-    created_by: user.id,
-    created_at: createdAt,
-    updated_at: createdAt
-  };
-  state.sites = [site, ...state.sites];
-  writeDemoState(state);
+  const { data: site, error } = await supabase
+    .from("sites")
+    .insert({
+      organization_id: organization.id,
+      name: input.data.name,
+      slug: input.data.slug,
+      website_type: input.data.websiteType,
+      status: "draft",
+      country_code: organization.country_code,
+      default_language: "en",
+      created_by: user.id
+    })
+    .select("id")
+    .single();
+
+  if (error || !site) redirect(`/dashboard/websites/new?error=${encodeURIComponent(error?.message ?? "Could not create website.")}`);
 
   revalidatePath("/dashboard");
   redirect(`/dashboard/websites/${site.id}/setup`);
 }
 
 export async function updateProfileAction(formData: FormData) {
-  const { user } = await requireUser();
-  const state = readDemoState();
+  const { supabase, user } = await requireUser();
   const input = profileSchema.safeParse({
     fullName: value(formData, "fullName"),
     phone: value(formData, "phone"),
@@ -100,18 +112,17 @@ export async function updateProfileAction(formData: FormData) {
     redirect("/dashboard/settings?error=Choose supported profile settings.");
   }
 
-  if (state.profile?.id !== user.id && state.profile?.email !== user.email) redirect("/dashboard/settings?error=Demo profile not found.");
-  if (state.profile) {
-    state.profile = {
-      ...state.profile,
+  const { error } = await supabase
+    .from("profiles")
+    .update({
       full_name: input.data.fullName,
-      phone: input.data.phone ?? null,
+      phone: input.data.phone,
       country_code: input.data.countryCode,
-      preferred_language: input.data.preferredLanguage,
-      updated_at: timestamp()
-    };
-  }
-  writeDemoState(state);
+      preferred_language: input.data.preferredLanguage
+    })
+    .eq("id", user.id);
+
+  if (error) redirect(`/dashboard/settings?error=${encodeURIComponent(error.message)}`);
 
   revalidatePath("/dashboard/settings");
   redirect("/dashboard/settings?message=Profile updated.");
