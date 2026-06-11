@@ -78,10 +78,10 @@ export function AppShell({
           : "grid-cols-2";
 
   return (
-    <div className="min-h-[100svh] min-w-0 overflow-x-hidden bg-canvas lg:grid lg:grid-cols-[260px_1fr]">
+    <div className="app-shell min-h-[100svh] min-w-0 overflow-x-hidden bg-canvas lg:grid lg:grid-cols-[260px_1fr]">
 
       {/* ── Desktop sidebar (hidden on mobile) ─────────────────────────────── */}
-      <aside className="hidden lg:flex lg:min-h-screen lg:flex-col lg:border-r lg:border-line lg:bg-white">
+      <aside className="app-shell-sidebar hidden lg:flex lg:min-h-screen lg:flex-col lg:border-r lg:border-line lg:bg-white">
         <div className="px-5 py-5">
           <Link href={homeHref} className="font-bold text-ink">
             Studio OS
@@ -126,7 +126,7 @@ export function AppShell({
         </header>
 
         {/* Desktop page header */}
-        <header className="hidden border-b border-line bg-white px-8 py-5 lg:block">
+        <header className="app-shell-desktop-header hidden border-b border-line bg-white px-8 py-5 lg:block">
           <div className="flex min-w-0 items-start justify-between gap-4">
             <div className="min-w-0">
               <h1 className="break-words text-2xl font-bold text-ink">{title}</h1>

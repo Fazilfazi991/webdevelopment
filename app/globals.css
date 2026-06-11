@@ -87,3 +87,13 @@ a {
 ::selection {
   background: #FDDBC5;
 }
+@media (min-width: 1024px) {
+  .app-shell:has([data-site-workspace]) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .app-shell:has([data-site-workspace]) > .app-shell-sidebar,
+  .app-shell:has([data-site-workspace]) .app-shell-desktop-header {
+    display: none;
+  }
+}
