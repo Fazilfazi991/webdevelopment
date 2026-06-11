@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { CheckCircle2, MonitorSmartphone, Search } from "lucide-react";
+import { CheckCircle2, Eye, MonitorSmartphone, Search, Sparkles } from "lucide-react";
 import { selectTemplateAction } from "@/app/setup-actions";
 import { StatusMessage } from "@/app/auth/status-message";
 import { SetupProgress } from "@/components/setup/setup-progress";
@@ -112,12 +112,20 @@ export default async function TemplatesPage({
                 const includedPages = includedPageNames(pages, template.id);
                 const image = templateImagePath(template.slug, template.thumbnail_url);
                 return (
-                  <Card key={template.id} className="flex h-full overflow-hidden bg-white">
+                  <Card key={template.id} className="flex h-full overflow-hidden bg-white shadow-soft transition hover:-translate-y-0.5 hover:shadow-lg">
                     <div className="flex min-w-0 flex-1 flex-col">
-                      <TemplateScreenshot slug={template.slug} name={template.name} src={image} />
+                      <div className="relative">
+                        <TemplateScreenshot slug={template.slug} name={template.name} src={image} />
+                        {template.is_featured ? (
+                          <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-white/95 px-3 py-1 text-xs font-bold text-brand-700 shadow-sm">
+                            <Sparkles size={13} />
+                            Featured
+                          </span>
+                        ) : null}
+                      </div>
                       <div className="flex flex-1 flex-col p-5">
                         <div className="flex items-start justify-between gap-3">
-                          <div>
+                          <div className="min-w-0">
                             <h3 className="text-lg font-bold text-ink">{template.name}</h3>
                             <p className="mt-1 text-sm font-semibold text-brand-700">{template.style_label ?? "Professional"}</p>
                           </div>
@@ -127,6 +135,16 @@ export default async function TemplatesPage({
                           </span>
                         </div>
                         <p className="mt-3 min-h-12 text-sm leading-6 text-muted">{template.short_description}</p>
+                        <div className="mt-4">
+                          <p className="text-xs font-bold uppercase tracking-[0.14em] text-muted">Best for</p>
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {[category.name, "Maintenance", "AC", "Electrical"].map((item) => (
+                              <span key={item} className="rounded-full bg-canvas px-2.5 py-1 text-xs font-semibold text-muted">
+                                {item}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
                         <div className="mt-4 flex flex-wrap gap-2">
                           {includedPages.slice(0, 5).map((page) => (
                             <span key={page} className="inline-flex items-center gap-1 rounded-full border border-line bg-canvas px-2.5 py-1 text-xs font-semibold text-muted">
@@ -135,8 +153,9 @@ export default async function TemplatesPage({
                             </span>
                           ))}
                         </div>
-                        <div className="mt-auto pt-5 grid grid-cols-2 gap-2">
+                        <div className="mt-auto grid grid-cols-2 gap-2 pt-5">
                           <ButtonLink href={`/dashboard/websites/${site.id}/setup/templates/${template.id}?category=${category.id}`} variant="secondary">
+                            <Eye size={15} />
                             Preview
                           </ButtonLink>
                           <form action={selectTemplateAction}>
@@ -144,7 +163,7 @@ export default async function TemplatesPage({
                             <input type="hidden" name="categoryId" value={category.id} />
                             <input type="hidden" name="templateId" value={template.id} />
                             <Button type="submit" className="w-full">
-                              Use
+                              Use Template
                             </Button>
                           </form>
                         </div>

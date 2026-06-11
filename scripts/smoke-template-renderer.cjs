@@ -17,6 +17,7 @@ const shared = read("components/site-renderer/sections/shared.tsx");
 const slots = read("lib/site-renderer/media-slots.ts");
 const previewShell = read("app/dashboard/websites/[siteId]/preview/preview-shell.tsx");
 const setupPreview = read("app/dashboard/websites/[siteId]/setup/templates/[templateId]/page.tsx");
+const templatesPage = read("app/dashboard/websites/[siteId]/setup/templates/page.tsx");
 const publicLoader = read("lib/publishing/public-loader.ts");
 const migration = read("supabase/migrations/014_site_media_slot_usage_types.sql");
 
@@ -26,6 +27,12 @@ assert(!shared.includes("md:grid-cols-2") && !shared.includes("lg:grid-cols"), "
 assert(!previewShell.includes("transform-gpu"), "Full preview shell should not transform-scale the template.");
 assert(!setupPreview.includes("transform-gpu"), "Setup preview shell should not transform-scale the template.");
 assert(setupPreview.includes("loadEditorContext") && setupPreview.includes("applyEditorMerges"), "Setup preview should merge uploaded site media after template selection.");
+assert(setupPreview.includes("Explore the pages"), "Template detail page should include the page gallery.");
+assert(setupPreview.includes("Homepage sections included"), "Template detail page should include the section showcase.");
+assert(setupPreview.includes("Try the live preview"), "Template detail page should keep the live renderer available.");
+assert(setupPreview.includes("Open Full Live Preview"), "Template detail page should expose full live preview actions.");
+assert(templatesPage.includes("Best for"), "Template marketplace card should show best-for industries.");
+assert(templatesPage.includes("Mobile-ready"), "Template marketplace card should show mobile responsive badge.");
 assert(publicLoader.includes("refreshSignedMediaUrls"), "Published preview should refresh signed URLs from snapshot storage paths.");
 
 [
@@ -57,6 +64,17 @@ assert(publicLoader.includes("refreshSignedMediaUrls"), "Published preview shoul
   "public/templates/technical-services-modern/projects/project-02.webp",
   "public/templates/technical-services-modern/projects/project-03.webp",
   "public/templates/technical-services-modern/projects/project-04.webp"
+  ,"public/templates/technical-services-modern/cover.webp"
+  ,"public/templates/technical-services-modern/page-home.webp"
+  ,"public/templates/technical-services-modern/page-about.webp"
+  ,"public/templates/technical-services-modern/page-services.webp"
+  ,"public/templates/technical-services-modern/page-projects.webp"
+  ,"public/templates/technical-services-modern/page-contact.webp"
+  ,"public/templates/technical-services-modern/section-hero.webp"
+  ,"public/templates/technical-services-modern/section-services.webp"
+  ,"public/templates/technical-services-modern/section-projects.webp"
+  ,"public/templates/technical-services-modern/section-contact.webp"
+  ,"public/templates/technical-services-modern/section-footer.webp"
 ].forEach((asset) => {
   assert(fs.existsSync(path.join(root, asset)), `Missing fallback asset: ${asset}`);
 });

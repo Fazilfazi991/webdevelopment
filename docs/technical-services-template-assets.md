@@ -35,3 +35,21 @@ Before this template is activated for customers:
 - Avoid watermarks, logos, embedded text, distorted tools, distorted interiors, and obvious AI-generated people.
 - Verify desktop and mobile crops after replacement at 1440, 1024, 768, and 390 viewport widths.
 - Update this manifest status from temporary placeholder to approved production asset only after visual QA.
+
+## Marketplace Preview Assets
+
+These assets power the premium template marketplace card and detail preview galleries. They currently reuse the downloaded Technical Services Modern WebP pack so the customer sees real imagery instead of skeleton placeholders.
+
+| Asset path | Purpose | Recommended size | Actual size | Replacement status | Screenshot status | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| `public/templates/technical-services-modern/cover.webp` | Large template detail cover preview | 1600x1200 or wider | 1600x1200 | Temporary real asset reuse | Available | Copied from `preview-desktop.webp` until a dedicated cover screenshot is supplied. |
+| `public/templates/technical-services-modern/page-home.webp` | Page gallery: Home | 1600x1200 | 1600x1200 | Temporary real asset reuse | Available | Copied from `preview-desktop.webp`. |
+| `public/templates/technical-services-modern/page-about.webp` | Page gallery: About | 1200x900 | 1200x900 | Temporary real asset reuse | Available | Copied from `about.webp`. |
+| `public/templates/technical-services-modern/page-services.webp` | Page gallery: Services | 1200x900 | 800x600 | Temporary real asset reuse | Available | Copied from `services/ac-maintenance.webp`; replace with full services-page screenshot later. |
+| `public/templates/technical-services-modern/page-projects.webp` | Page gallery: Projects | 1200x900 | 1200x900 | Temporary real asset reuse | Available | Copied from `projects/project-01.webp`. |
+| `public/templates/technical-services-modern/page-contact.webp` | Page gallery: Contact | 1600x900 | 1600x900 | Temporary real asset reuse | Available | Copied from `hero.webp`; replace with contact-page screenshot later. |
+| `public/templates/technical-services-modern/section-hero.webp` | Section showcase: Hero | 1600x900 | 1600x900 | Temporary real asset reuse | Available | Copied from `hero.webp`. |
+| `public/templates/technical-services-modern/section-services.webp` | Section showcase: Services | 1200x900 | 800x600 | Temporary real asset reuse | Available | Copied from `services/electrical.webp`. |
+| `public/templates/technical-services-modern/section-projects.webp` | Section showcase: Projects | 1200x900 | 1200x900 | Temporary real asset reuse | Available | Copied from `projects/project-02.webp`. |
+| `public/templates/technical-services-modern/section-contact.webp` | Section showcase: Contact | 1200x900 | 1200x900 | Temporary real asset reuse | Available | Copied from `about.webp`. |
+| `public/templates/technical-services-modern/section-footer.webp` | Section showcase: Footer | 480x960 | 480x960 | Temporary real asset reuse | Available | Copied from `preview-mobile.webp`; replace with footer screenshot later. |
