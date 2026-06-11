@@ -49,6 +49,8 @@ export const sectionStateSchema = z.object({
 
 export const mediaSchema = z.object({
   siteId: z.string().uuid(),
+  storagePath: z.string().min(10),
+  replaceMediaId: z.string().uuid().optional().or(z.literal("")),
   usageType: z.enum(["logo", "hero", "service", "gallery", "about", "favicon", "general"]),
   fileName: z.string().trim().min(2).max(160),
   mimeType: z.enum(["image/jpeg", "image/png", "image/webp", "image/svg+xml"]),
@@ -56,6 +58,11 @@ export const mediaSchema = z.object({
   width: z.coerce.number().int().min(1).optional(),
   height: z.coerce.number().int().min(1).optional(),
   altText: z.string().trim().max(180).optional()
+});
+
+export const removeMediaSchema = z.object({
+  siteId: z.string().uuid(),
+  mediaId: z.string().uuid()
 });
 
 export const saveVersionSchema = z.object({

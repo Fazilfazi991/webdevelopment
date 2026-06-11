@@ -66,6 +66,32 @@ export function mergeBusinessProfile(content: unknown, profile: SiteBusinessProf
   return mergeObjects(content, patch);
 }
 
+function latestMedia(media: SiteMedia[], usageType: SiteMedia["usage_type"]) {
+  return media.find((item) => item.usage_type === usageType && item.signed_url);
+}
+
+function applyMediaToContent(content: unknown, sectionKey: string, media: SiteMedia[]) {
+  const current = content && typeof content === "object" && !Array.isArray(content) ? { ...(content as Record<string, unknown>) } : {};
+  const usageType = sectionKey.includes("hero")
+    ? "hero"
+    : sectionKey.includes("about")
+      ? "about"
+      : sectionKey.includes("service")
+        ? "service"
+        : sectionKey.includes("gallery") || sectionKey.includes("project")
+          ? "gallery"
+          : null;
+  const match = usageType ? latestMedia(media, usageType) : null;
+  if (!match?.signed_url) return current;
+  return {
+    ...current,
+    image: {
+      src: match.signed_url,
+      alt: match.alt_text || match.file_name
+    }
+  };
+}
+
 export function applyEditorMerges(context: EditorContext) {
   if (context.previewResult.status !== "ready") return context.previewResult;
   const overrides = new Map(context.sectionOverrides.map((override) => [override.template_section_id, override]));
@@ -73,7 +99,10 @@ export function applyEditorMerges(context: EditorContext) {
   const sections = preview.sections
     .map((section) => {
       const override = overrides.get(section.id);
-      const content = mergeObjects(mergeBusinessProfile(section.default_content, context.businessProfile), override?.content_override);
+      const content = mergeObjects(
+        applyMediaToContent(mergeBusinessProfile(section.default_content, context.businessProfile), section.section_key, context.media),
+        override?.content_override
+      );
       return {
         ...section,
         default_content: content,
@@ -104,12 +133,19 @@ export async function loadEditorContext(supabase: Supabase, siteId: string, canE
     supabase.from("site_media").select("*").eq("site_id", siteId).order("created_at", { ascending: false }).returns<SiteMedia[]>()
   ]);
 
+  const media = await Promise.all(
+    (mediaResult.data ?? []).map(async (item) => {
+      const { data } = await supabase.storage.from("site-media").createSignedUrl(item.storage_path, 60 * 15);
+      return { ...item, signed_url: data?.signedUrl };
+    })
+  );
+
   return {
     previewResult,
     businessProfile: profileResult.data ?? null,
     sectionOverrides: overridesResult.data ?? [],
     themeOverride: themeResult.data ?? null,
-    media: mediaResult.data ?? [],
+    media,
     canEdit
   };
 }

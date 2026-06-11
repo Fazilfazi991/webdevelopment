@@ -4,9 +4,16 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getSectionSchema } from "@/lib/site-renderer/section-schemas";
 import { loadEditorContext, mergeObjects } from "@/lib/site-editor/editor-loader";
-import { businessProfileSchema, mediaSchema, saveVersionSchema, sectionOverrideSchema, sectionStateSchema, themeOverrideSchema } from "@/lib/site-editor/schemas";
+import {
+  businessProfileSchema,
+  mediaSchema,
+  removeMediaSchema,
+  saveVersionSchema,
+  sectionOverrideSchema,
+  sectionStateSchema,
+  themeOverrideSchema
+} from "@/lib/site-editor/schemas";
 import { requireSiteSetup } from "@/lib/setup";
-import { slugify } from "@/lib/utils";
 
 function value(formData: FormData, key: string) {
   return String(formData.get(key) ?? "");
@@ -231,6 +238,8 @@ export async function resetSectionAction(formData: FormData) {
 export async function saveMediaMetadataAction(formData: FormData) {
   const input = mediaSchema.safeParse({
     siteId: value(formData, "siteId"),
+    storagePath: value(formData, "storagePath"),
+    replaceMediaId: value(formData, "replaceMediaId"),
     usageType: value(formData, "usageType"),
     fileName: value(formData, "fileName"),
     mimeType: value(formData, "mimeType"),
@@ -241,12 +250,14 @@ export async function saveMediaMetadataAction(formData: FormData) {
   });
   if (!input.success) redirect(`/dashboard/websites?error=${encodeURIComponent(input.error.errors[0].message)}`);
   const { supabase, site, organization, user } = await requireEditableSite(input.data.siteId);
-  const safeName = `${Date.now()}-${slugify(input.data.fileName.replace(/\.[^.]+$/, "")) || "image"}`;
-  const storagePath = `organizations/${organization.id}/sites/${site.id}/${safeName}`;
+  const expectedPrefix = `organizations/${organization.id}/sites/${site.id}/`;
+  if (!input.data.storagePath.startsWith(expectedPrefix)) {
+    redirect(`/dashboard/websites/${site.id}/editor/images?error=Upload path is not valid for this website.`);
+  }
   const { error } = await supabase.from("site_media").insert({
     site_id: site.id,
     organization_id: organization.id,
-    storage_path: storagePath,
+    storage_path: input.data.storagePath,
     file_name: input.data.fileName,
     mime_type: input.data.mimeType,
     file_size: input.data.fileSize,
@@ -256,9 +267,41 @@ export async function saveMediaMetadataAction(formData: FormData) {
     usage_type: input.data.usageType,
     created_by: user.id
   });
-  if (error) redirect(`/dashboard/websites/${site.id}/editor/images?error=Could not save image metadata.`);
+  if (error) {
+    await supabase.storage.from("site-media").remove([input.data.storagePath]);
+    redirect(`/dashboard/websites/${site.id}/editor/images?error=Upload completed, but image details could not be saved. The uploaded file was cleaned up.`);
+  }
+  if (input.data.replaceMediaId) {
+    const { data: replaced } = await supabase
+      .from("site_media")
+      .select("storage_path")
+      .eq("site_id", site.id)
+      .eq("id", input.data.replaceMediaId)
+      .maybeSingle<{ storage_path: string }>();
+    if (replaced?.storage_path) await supabase.storage.from("site-media").remove([replaced.storage_path]);
+    await supabase.from("site_media").delete().eq("site_id", site.id).eq("id", input.data.replaceMediaId);
+  }
   revalidatePath(`/dashboard/websites/${site.id}`);
-  redirect(`/dashboard/websites/${site.id}/editor/images?message=Image metadata saved. Upload the file to the matching private storage path.`);
+  redirect(`/dashboard/websites/${site.id}/editor/images?message=Image uploaded.`);
+}
+
+export async function removeMediaAction(formData: FormData) {
+  const input = removeMediaSchema.safeParse({
+    siteId: value(formData, "siteId"),
+    mediaId: value(formData, "mediaId")
+  });
+  if (!input.success) redirect("/dashboard/websites?error=Could not remove image.");
+  const { supabase, site } = await requireEditableSite(input.data.siteId);
+  const { data } = await supabase
+    .from("site_media")
+    .select("storage_path")
+    .eq("site_id", site.id)
+    .eq("id", input.data.mediaId)
+    .maybeSingle<{ storage_path: string }>();
+  if (data?.storage_path) await supabase.storage.from("site-media").remove([data.storage_path]);
+  await supabase.from("site_media").delete().eq("site_id", site.id).eq("id", input.data.mediaId);
+  revalidatePath(`/dashboard/websites/${site.id}`);
+  redirect(`/dashboard/websites/${site.id}/editor/images?message=Image removed.`);
 }
 
 export async function saveVersionAction(formData: FormData) {

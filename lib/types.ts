@@ -175,4 +175,5 @@ export type SiteMedia = {
   created_by: string;
   created_at: string;
   updated_at: string;
+  signed_url?: string;
 };

@@ -62,6 +62,14 @@ function SectionIntro({ eyebrow, title, body, centered = false }: { eyebrow?: st
 
 function ImageFrame({ image, priority = false }: { image?: { src: string; alt: string }; priority?: boolean }) {
   if (!image) return <div className="aspect-[4/3] rounded-[var(--site-card-radius)] bg-[var(--site-surface)]" />;
+  if (image.src.startsWith("http")) {
+    return (
+      <div className="relative aspect-[4/3] overflow-hidden rounded-[var(--site-card-radius)] bg-[var(--site-surface)]">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={image.src} alt={image.alt} className="h-full w-full object-cover" />
+      </div>
+    );
+  }
   return (
     <div className="relative aspect-[4/3] overflow-hidden rounded-[var(--site-card-radius)] bg-[var(--site-surface)]">
       <Image src={image.src} alt={image.alt} fill priority={priority} sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" />
@@ -134,7 +142,12 @@ export function HeroSplit({ content }: { content: z.infer<typeof heroSplitSchema
 export function HeroBackground({ content }: { content: z.infer<typeof heroBackgroundSchema> }) {
   return (
     <section className="relative overflow-hidden bg-[var(--site-primary-dark)] text-white">
-      {content.image ? <Image src={content.image.src} alt="" fill sizes="100vw" className="object-cover opacity-30" /> : null}
+      {content.image?.src.startsWith("http") ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={content.image.src} alt="" className="absolute inset-0 h-full w-full object-cover opacity-30" />
+      ) : content.image ? (
+        <Image src={content.image.src} alt="" fill sizes="100vw" className="object-cover opacity-30" />
+      ) : null}
       <div className="relative mx-auto max-w-7xl px-5 py-20">
         <div className="max-w-3xl">
           {content.eyebrow ? <p className="text-sm font-bold uppercase tracking-[0.18em] text-[var(--site-secondary)]">{content.eyebrow}</p> : null}
