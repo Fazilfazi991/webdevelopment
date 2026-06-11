@@ -15,6 +15,19 @@ function isAllowed<T extends readonly { value: string }[]>(list: T, candidate: s
   return list.some((item) => item.value === candidate);
 }
 
+function isHexColor(candidate: string) {
+  return /^#[0-9A-Fa-f]{6}$/.test(candidate);
+}
+
+const starterThemeByPrimary: Record<string, { secondary: string; accent: string }> = {
+  "#0f766e": { secondary: "#d8f3ee", accent: "#134e4a" },
+  "#1d4ed8": { secondary: "#dbeafe", accent: "#1e3a8a" },
+  "#c2410c": { secondary: "#ffedd5", accent: "#7c2d12" },
+  "#111827": { secondary: "#e5e7eb", accent: "#030712" },
+  "#6d28d9": { secondary: "#ede9fe", accent: "#4c1d95" },
+  "#be123c": { secondary: "#ffe4e6", accent: "#881337" }
+};
+
 export async function createOrganizationAction(formData: FormData) {
   const { supabase, user } = await requireUser();
   const input = organizationSchema.safeParse({
@@ -138,6 +151,29 @@ export async function updateProfileAction(formData: FormData) {
   redirect("/dashboard/settings?message=Profile updated.");
 }
 
+export async function deleteSiteAction(formData: FormData) {
+  const { supabase, organization } = await requireDashboardContext();
+  const siteId = value(formData, "siteId");
+
+  if (!siteId) redirect("/dashboard?error=Choose a website to delete.");
+
+  const { error } = await supabase
+    .from("sites")
+    .update({
+      status: "archived",
+      publication_status: "unpublished",
+      primary_subdomain: null
+    })
+    .eq("id", siteId)
+    .eq("organization_id", organization.id);
+
+  if (error) redirect(`/dashboard?error=${encodeURIComponent(error.message)}`);
+
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/websites");
+  redirect("/dashboard?message=Website deleted.");
+}
+
 /** Auto-derives timezone and currency from country for the simplified onboarding form. */
 export async function createOrganizationAutoAction(formData: FormData) {
   const { supabase, user } = await requireUser();
@@ -216,6 +252,9 @@ export async function createSiteWithProfileAction(formData: FormData) {
   const city = value(formData, "city") || null;
   const mapEmbedUrl = value(formData, "mapEmbedUrl") || null;
   const workingHours = value(formData, "workingHours") || null;
+  const brandColorInput = value(formData, "brandColor") || "#0f766e";
+  const brandColor = isHexColor(brandColorInput) ? brandColorInput : "#0f766e";
+  const starterTheme = starterThemeByPrimary[brandColor] ?? starterThemeByPrimary["#0f766e"];
 
   if (!name || !slug) redirect("/dashboard/websites/new?error=Business name is required.");
   if (!isAllowed(countries, countryCode) || !isAllowed(languages, defaultLanguage)) {
@@ -267,7 +306,24 @@ export async function createSiteWithProfileAction(formData: FormData) {
     redirect(`/dashboard/websites/new?error=${encodeURIComponent(profileError.message)}`);
   }
 
+  const { error: themeError } = await supabase.from("site_theme_overrides").upsert(
+    {
+      site_id: site.id,
+      primary_color: brandColor,
+      secondary_color: starterTheme.secondary,
+      accent_color: starterTheme.accent,
+      font_preset: "professional_sans",
+      button_style: "soft_rounded",
+      radius_preset: "balanced"
+    },
+    { onConflict: "site_id" }
+  );
+
+  if (themeError) {
+    await supabase.from("sites").delete().eq("id", site.id);
+    redirect(`/dashboard/websites/new?error=${encodeURIComponent(themeError.message)}`);
+  }
+
   revalidatePath("/dashboard");
   redirect(`/dashboard/websites/${site.id}/setup/industry`);
 }
-

@@ -35,6 +35,7 @@ export async function requireDashboardContext() {
   const { data: sites } = await supabase
     .from("sites")
     .select("*")
+    .neq("status", "archived")
     .order("updated_at", { ascending: false })
     .returns<Site[]>();
 

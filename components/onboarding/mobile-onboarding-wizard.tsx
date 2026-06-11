@@ -58,6 +58,7 @@ interface WizardData {
   // Screen 3
   selectedServiceIds: string[];
   customServices: string[];
+  brandColor: string;
 }
 
 const INITIAL_DATA: WizardData = {
@@ -75,8 +76,18 @@ const INITIAL_DATA: WizardData = {
   mapsLink: "",
   workingHours: "",
   selectedServiceIds: [],
-  customServices: []
+  customServices: [],
+  brandColor: "#0f766e"
 };
+
+const BRAND_COLOR_OPTIONS = [
+  { name: "Studio Green", value: "#0f766e", secondary: "#d8f3ee", accent: "#134e4a" },
+  { name: "Deep Blue", value: "#1d4ed8", secondary: "#dbeafe", accent: "#1e3a8a" },
+  { name: "Warm Orange", value: "#c2410c", secondary: "#ffedd5", accent: "#7c2d12" },
+  { name: "Premium Black", value: "#111827", secondary: "#e5e7eb", accent: "#030712" },
+  { name: "Royal Purple", value: "#6d28d9", secondary: "#ede9fe", accent: "#4c1d95" },
+  { name: "Soft Rose", value: "#be123c", secondary: "#ffe4e6", accent: "#881337" }
+] as const;
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -434,6 +445,41 @@ function Screen3({
         )}
       </div>
 
+      <div className="space-y-3">
+        <div>
+          <p className="text-sm font-semibold text-ink">Website colours</p>
+          <p className="mt-1 text-xs leading-5 text-muted">Choose the main colour for buttons, highlights, and your website style. You can change it later.</p>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          {BRAND_COLOR_OPTIONS.map((color) => {
+            const selected = data.brandColor === color.value;
+            return (
+              <button
+                key={color.value}
+                type="button"
+                onClick={() => onChange({ brandColor: color.value })}
+                className={cn(
+                  "flex min-h-[64px] items-center gap-3 rounded-xl border bg-white px-3 text-left transition active:scale-95",
+                  selected ? "border-brand-700 ring-2 ring-brand-100" : "border-line hover:border-brand-200"
+                )}
+                aria-pressed={selected}
+              >
+                <span className="flex shrink-0 -space-x-1">
+                  <span className="size-7 rounded-full border border-white" style={{ backgroundColor: color.value }} />
+                  <span className="size-7 rounded-full border border-white" style={{ backgroundColor: color.secondary }} />
+                  <span className="size-7 rounded-full border border-white" style={{ backgroundColor: color.accent }} />
+                </span>
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-bold text-ink">{color.name}</span>
+                  <span className="block text-xs text-muted">{color.value}</span>
+                </span>
+                {selected ? <Check size={15} className="ml-auto shrink-0 text-brand-700" /> : null}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {/* Logo upload */}
       <ImageUploadSlot
         label="Business logo"
@@ -684,6 +730,7 @@ export function MobileOnboardingWizard({ error }: { error?: string }) {
         <input name="mapEmbedUrl" defaultValue={data.mapsLink} />
         <input name="workingHours" defaultValue={data.workingHours} />
         <input name="services" defaultValue={[...data.selectedServiceIds, ...data.customServices].join(",")} />
+        <input name="brandColor" defaultValue={data.brandColor} />
         <button type="submit">Submit</button>
       </form>
     </div>
