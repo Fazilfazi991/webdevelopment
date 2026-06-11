@@ -18,7 +18,16 @@ const config: Config = {
           900: "#15382f"
         },
         gold: "#b7863b",
-        danger: "#b42318"
+        danger: "#b42318",
+        // Marketing homepage accent
+        orange: {
+          50: "#FEF0E8",
+          100: "#FDDBC5",
+          400: "#F0944A",
+          500: "#E8611A",
+          600: "#C4521A",
+          700: "#9E3F10"
+        }
       },
       boxShadow: {
         soft: "0 10px 28px rgba(24, 33, 31, 0.07)"

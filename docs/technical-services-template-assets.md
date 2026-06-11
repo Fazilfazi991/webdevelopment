@@ -1,18 +1,35 @@
-# Technical Services Modern Template Assets
+# Technical Services Modern Asset Manifest
 
-These local SVG files are neutral placeholders with stable aspect ratios. Replace them with professional real-world photography before production launch.
+Status: temporary local placeholders only.
 
-| File | Recommended dimensions | Aspect ratio | Purpose | Replacement status |
-| --- | ---: | ---: | --- | --- |
-| `public/templates/technical-services-modern/hero.svg` | 1600 x 1200 | 4:3 | Homepage and page hero visual | Placeholder |
-| `public/templates/technical-services-modern/about.svg` | 1200 x 900 | 4:3 | About/company process visual | Placeholder |
-| `public/templates/technical-services-modern/services/ac-maintenance.svg` | 900 x 675 | 4:3 | AC maintenance service card | Placeholder |
-| `public/templates/technical-services-modern/services/electrical.svg` | 900 x 675 | 4:3 | Electrical service card | Placeholder |
-| `public/templates/technical-services-modern/services/plumbing.svg` | 900 x 675 | 4:3 | Plumbing service card | Placeholder |
-| `public/templates/technical-services-modern/services/painting.svg` | 900 x 675 | 4:3 | Painting service card | Placeholder |
-| `public/templates/technical-services-modern/services/interior-repairs.svg` | 900 x 675 | 4:3 | Interior repairs service card | Placeholder |
-| `public/templates/technical-services-modern/services/preventive-maintenance.svg` | 900 x 675 | 4:3 | Preventive maintenance service card | Placeholder |
-| `public/templates/technical-services-modern/projects/project-01.svg` | 1200 x 900 | 4:3 | Residential project sample | Placeholder |
-| `public/templates/technical-services-modern/projects/project-02.svg` | 1200 x 900 | 4:3 | Office project sample | Placeholder |
-| `public/templates/technical-services-modern/projects/project-03.svg` | 1200 x 900 | 4:3 | Villa project sample | Placeholder |
-| `public/templates/technical-services-modern/projects/project-04.svg` | 1200 x 900 | 4:3 | Preventive maintenance project sample | Placeholder |
+These files are local placeholder assets for building and testing the Technical Services Modern template structure. They are not final production photography and must be replaced before commercial activation. Do not treat the current images as approved final assets.
+
+## Required Image Manifest
+
+| File path | Filename | Section |
+| --- | --- | --- |
+| `public/templates/technical-services-modern/hero.webp` | `hero.webp` | Home hero, page hero backgrounds |
+| `public/templates/technical-services-modern/about.webp` | `about.webp` | Home about, About page process section |
+| `public/templates/technical-services-modern/thumbnail.webp` | `thumbnail.webp` | Template marketplace card |
+| `public/templates/technical-services-modern/preview-desktop.webp` | `preview-desktop.webp` | Template marketplace desktop preview |
+| `public/templates/technical-services-modern/preview-mobile.webp` | `preview-mobile.webp` | Template marketplace mobile preview |
+| `public/templates/technical-services-modern/services/ac-maintenance.webp` | `ac-maintenance.webp` | Services card grid, Services page alternating row |
+| `public/templates/technical-services-modern/services/electrical.webp` | `electrical.webp` | Services card grid, Services page alternating row |
+| `public/templates/technical-services-modern/services/plumbing.webp` | `plumbing.webp` | Services card grid, Services page alternating row |
+| `public/templates/technical-services-modern/services/painting.webp` | `painting.webp` | Services card grid |
+| `public/templates/technical-services-modern/services/interior-repairs.webp` | `interior-repairs.webp` | Services card grid |
+| `public/templates/technical-services-modern/services/preventive-maintenance.webp` | `preventive-maintenance.webp` | Services card grid, Services page alternating row |
+| `public/templates/technical-services-modern/projects/project-01.webp` | `project-01.webp` | Projects gallery - Apartment AC service |
+| `public/templates/technical-services-modern/projects/project-02.webp` | `project-02.webp` | Projects gallery - Office electrical checks |
+| `public/templates/technical-services-modern/projects/project-03.webp` | `project-03.webp` | Projects gallery - Villa plumbing support |
+| `public/templates/technical-services-modern/projects/project-04.webp` | `project-04.webp` | Projects gallery - Preventive maintenance visit |
+
+## Replacement Checklist
+
+Before this template is activated for customers:
+
+- Replace every temporary placeholder with real professional WebP photography.
+- Keep the same filenames and aspect ratios unless the template seed is updated at the same time.
+- Avoid watermarks, logos, embedded text, distorted tools, distorted interiors, and obvious AI-generated people.
+- Verify desktop and mobile crops after replacement.
+- Update this manifest status from temporary placeholder to approved production asset only after visual QA.

@@ -47,6 +47,10 @@ If you already applied the Phase 1 SQL before the RLS tightening patch was added
 
 `supabase/migrations/002_phase1_rls_tightening.sql`
 
+For Phase 2 template discovery, apply:
+
+`supabase/migrations/003_phase2_template_discovery.sql`
+
 After registering your first user, make that user an admin manually:
 
 ```sql

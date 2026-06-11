@@ -294,14 +294,14 @@ content as (
         "body": "Horizon Technical Services helps property owners and businesses keep essential systems running with clear communication, careful workmanship, and scheduled maintenance support.",
         "primaryAction": {"label": "Request a quote", "href": "/contact"},
         "secondaryAction": {"label": "View services", "href": "/services"},
-        "image": {"src": "/templates/technical-services-modern/hero.svg", "alt": "Technician preparing tools for a maintenance visit"},
+        "image": {"src": "/templates/technical-services-modern/hero.webp", "alt": "Technician preparing tools for a maintenance visit"},
         "proofPoints": ["AC, electrical, plumbing, and repairs", "Preventive maintenance plans", "Clear site visits and follow-up"]
       }'::jsonb
       when 'hero-background-overlay' then '{
         "eyebrow": "Horizon Technical Services",
         "title": "Practical support for property maintenance",
         "body": "Explore our approach, services, and recent sample project types for technical-service businesses.",
-        "image": {"src": "/templates/technical-services-modern/hero.svg", "alt": "Technical maintenance workspace"}
+        "image": {"src": "/templates/technical-services-modern/hero.webp", "alt": "Technical maintenance workspace"}
       }'::jsonb
       when 'hero-minimal-services' then '{
         "eyebrow": "Contact our team",
@@ -320,36 +320,36 @@ content as (
         "eyebrow": "About Horizon",
         "title": "A measured approach to everyday technical work",
         "body": "The template is designed for companies that need to communicate trust, service coverage, and practical response times without overpromising.",
-        "image": {"src": "/templates/technical-services-modern/about.svg", "alt": "Organised maintenance tools and service checklist"},
+        "image": {"src": "/templates/technical-services-modern/about.webp", "alt": "Organised maintenance tools and service checklist"},
         "bullets": ["Structured site visits", "Clear service recommendations", "Support for homes and small businesses"]
       }'::jsonb
       when 'about-image-right' then '{
         "eyebrow": "How we work",
         "title": "Simple coordination from request to completion",
         "body": "Use this section to explain how your team receives requests, inspects the issue, confirms the work, and follows up after completion.",
-        "image": {"src": "/templates/technical-services-modern/about.svg", "alt": "Maintenance planning notes and tools"},
+        "image": {"src": "/templates/technical-services-modern/about.webp", "alt": "Maintenance planning notes and tools"},
         "bullets": ["Assess the requirement", "Confirm the service scope", "Complete and document the visit"]
       }'::jsonb
       when 'services-card-grid' then '{
         "eyebrow": "Core services",
         "title": "Maintenance services customers can understand quickly",
         "items": [
-          {"title": "AC Maintenance", "body": "Routine servicing and practical cooling-system support.", "image": {"src": "/templates/technical-services-modern/services/ac-maintenance.svg", "alt": "Air conditioning maintenance tools"}},
-          {"title": "Electrical Services", "body": "Electrical checks, minor works, and safe troubleshooting.", "image": {"src": "/templates/technical-services-modern/services/electrical.svg", "alt": "Electrical service equipment"}},
-          {"title": "Plumbing Solutions", "body": "Leak checks, fixture support, and plumbing repairs.", "image": {"src": "/templates/technical-services-modern/services/plumbing.svg", "alt": "Plumbing maintenance tools"}},
-          {"title": "Painting Services", "body": "Interior touch-ups and planned repainting support.", "image": {"src": "/templates/technical-services-modern/services/painting.svg", "alt": "Painting service tools"}},
-          {"title": "Interior Repairs", "body": "Small repair jobs that help properties stay ready to use.", "image": {"src": "/templates/technical-services-modern/services/interior-repairs.svg", "alt": "Interior repair tools"}},
-          {"title": "Preventive Maintenance", "body": "Scheduled checks to reduce surprise maintenance issues.", "image": {"src": "/templates/technical-services-modern/services/preventive-maintenance.svg", "alt": "Preventive maintenance checklist"}}
+          {"title": "AC Maintenance", "body": "Routine servicing and practical cooling-system support.", "image": {"src": "/templates/technical-services-modern/services/ac-maintenance.webp", "alt": "Air conditioning maintenance tools"}},
+          {"title": "Electrical Services", "body": "Electrical checks, minor works, and safe troubleshooting.", "image": {"src": "/templates/technical-services-modern/services/electrical.webp", "alt": "Electrical service equipment"}},
+          {"title": "Plumbing Solutions", "body": "Leak checks, fixture support, and plumbing repairs.", "image": {"src": "/templates/technical-services-modern/services/plumbing.webp", "alt": "Plumbing maintenance tools"}},
+          {"title": "Painting Services", "body": "Interior touch-ups and planned repainting support.", "image": {"src": "/templates/technical-services-modern/services/painting.webp", "alt": "Painting service tools"}},
+          {"title": "Interior Repairs", "body": "Small repair jobs that help properties stay ready to use.", "image": {"src": "/templates/technical-services-modern/services/interior-repairs.webp", "alt": "Interior repair tools"}},
+          {"title": "Preventive Maintenance", "body": "Scheduled checks to reduce surprise maintenance issues.", "image": {"src": "/templates/technical-services-modern/services/preventive-maintenance.webp", "alt": "Preventive maintenance checklist"}}
         ]
       }'::jsonb
       when 'services-alternating-rows' then '{
         "eyebrow": "Services",
         "title": "Technical support arranged around real property needs",
         "items": [
-          {"title": "AC Maintenance", "body": "Scheduled inspection and service support for cooling systems before small issues become disruptive.", "image": {"src": "/templates/technical-services-modern/services/ac-maintenance.svg", "alt": "AC maintenance placeholder"}},
-          {"title": "Electrical Services", "body": "Careful checks and practical electrical maintenance for homes, offices, and small commercial spaces.", "image": {"src": "/templates/technical-services-modern/services/electrical.svg", "alt": "Electrical services placeholder"}},
-          {"title": "Plumbing Solutions", "body": "Straightforward support for leaks, fixtures, and water-flow issues.", "image": {"src": "/templates/technical-services-modern/services/plumbing.svg", "alt": "Plumbing solutions placeholder"}},
-          {"title": "Preventive Maintenance", "body": "Planned visits, clear notes, and follow-up recommendations for ongoing care.", "image": {"src": "/templates/technical-services-modern/services/preventive-maintenance.svg", "alt": "Maintenance checklist placeholder"}}
+          {"title": "AC Maintenance", "body": "Scheduled inspection and service support for cooling systems before small issues become disruptive.", "image": {"src": "/templates/technical-services-modern/services/ac-maintenance.webp", "alt": "AC maintenance service tools"}},
+          {"title": "Electrical Services", "body": "Careful checks and practical electrical maintenance for homes, offices, and small commercial spaces.", "image": {"src": "/templates/technical-services-modern/services/electrical.webp", "alt": "Electrical service tools"}},
+          {"title": "Plumbing Solutions", "body": "Straightforward support for leaks, fixtures, and water-flow issues.", "image": {"src": "/templates/technical-services-modern/services/plumbing.webp", "alt": "Plumbing service tools"}},
+          {"title": "Preventive Maintenance", "body": "Planned visits, clear notes, and follow-up recommendations for ongoing care.", "image": {"src": "/templates/technical-services-modern/services/preventive-maintenance.webp", "alt": "Preventive maintenance checklist"}}
         ]
       }'::jsonb
       when 'why-choose-us-grid' then '{
@@ -366,10 +366,10 @@ content as (
         "eyebrow": "Sample project types",
         "title": "Show the kind of work your team handles",
         "items": [
-          {"title": "Apartment AC service", "body": "Routine cooling-system maintenance for a residential unit.", "image": {"src": "/templates/technical-services-modern/projects/project-01.svg", "alt": "Residential AC service sample"}},
-          {"title": "Office electrical checks", "body": "Small electrical checks and maintenance in a working office.", "image": {"src": "/templates/technical-services-modern/projects/project-02.svg", "alt": "Office electrical maintenance sample"}},
-          {"title": "Villa plumbing support", "body": "Fixture and leak-support visit for a family home.", "image": {"src": "/templates/technical-services-modern/projects/project-03.svg", "alt": "Villa plumbing support sample"}},
-          {"title": "Preventive maintenance visit", "body": "Scheduled inspection and notes for ongoing property care.", "image": {"src": "/templates/technical-services-modern/projects/project-04.svg", "alt": "Preventive maintenance sample"}}
+          {"title": "Apartment AC service", "body": "Routine cooling-system maintenance for a residential unit.", "image": {"src": "/templates/technical-services-modern/projects/project-01.webp", "alt": "Residential AC service sample"}},
+          {"title": "Office electrical checks", "body": "Small electrical checks and maintenance in a working office.", "image": {"src": "/templates/technical-services-modern/projects/project-02.webp", "alt": "Office electrical maintenance sample"}},
+          {"title": "Villa plumbing support", "body": "Fixture and leak-support visit for a family home.", "image": {"src": "/templates/technical-services-modern/projects/project-03.webp", "alt": "Villa plumbing support sample"}},
+          {"title": "Preventive maintenance visit", "body": "Scheduled inspection and notes for ongoing property care.", "image": {"src": "/templates/technical-services-modern/projects/project-04.webp", "alt": "Preventive maintenance sample"}}
         ]
       }'::jsonb
       when 'testimonials-cards' then '{
@@ -455,4 +455,5 @@ set section_variant_id = excluded.section_variant_id,
     default_content = excluded.default_content,
     default_settings = excluded.default_settings,
     updated_at = now();
+
 
