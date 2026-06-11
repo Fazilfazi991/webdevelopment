@@ -1,7 +1,10 @@
-import { MoreHorizontal, Pencil, Plus } from "lucide-react";
+import { ExternalLink, Globe2, MoreHorizontal, Pencil, Plus } from "lucide-react";
+import { publishWebsiteAction, unpublishWebsiteAction } from "@/app/publishing-actions";
 import { StatusBadge } from "@/components/status-badge";
-import { ButtonLink } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { Card, EmptyState } from "@/components/ui/card";
+import { inputClassName } from "@/components/ui/field";
+import { publicSitePath } from "@/lib/publishing/constants";
 import { requireDashboardContext } from "@/lib/data";
 import { setupPath } from "@/lib/setup";
 import type { BusinessCategory, Industry, SiteTemplateSelection, Template } from "@/lib/types";
@@ -50,6 +53,18 @@ export default async function WebsitesPage() {
                   </div>
                   <StatusBadge status={site.status} />
                 </div>
+                <div className="mt-4 rounded-app border border-line bg-canvas p-3 text-sm">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="font-semibold text-ink">Publishing</span>
+                    <span className="capitalize text-muted">{site.publication_status}</span>
+                  </div>
+                  {site.primary_subdomain ? (
+                    <ButtonLink href={publicSitePath(site.primary_subdomain)} variant="ghost" className="mt-2 w-full justify-start">
+                      <ExternalLink size={16} />
+                      Open public site
+                    </ButtonLink>
+                  ) : null}
+                </div>
                 <dl className="mt-5 grid gap-2 text-sm text-muted">
                   <div className="flex justify-between gap-3">
                     <dt>Setup</dt>
@@ -93,6 +108,19 @@ export default async function WebsitesPage() {
                     <MoreHorizontal size={18} />
                   </ButtonLink>
                 </div>
+                <form action={site.publication_status === "published" ? unpublishWebsiteAction : publishWebsiteAction} className="mt-4 grid gap-2 border-t border-line pt-4">
+                  <input type="hidden" name="siteId" value={site.id} />
+                  {site.publication_status === "published" ? null : (
+                    <label className="grid gap-1 text-sm font-semibold text-ink">
+                      Platform subdomain
+                      <input className={inputClassName} name="subdomain" defaultValue={site.primary_subdomain ?? site.slug} pattern="[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?" />
+                    </label>
+                  )}
+                  <Button type="submit" variant={site.publication_status === "published" ? "secondary" : "primary"}>
+                    <Globe2 size={16} />
+                    {site.publication_status === "published" ? "Unpublish" : "Publish"}
+                  </Button>
+                </form>
               </Card>
             );
           })}

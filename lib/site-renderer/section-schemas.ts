@@ -116,7 +116,12 @@ export const contactSchema = headingBlockSchema.extend({
   phone: z.string().optional(),
   email: z.string().optional(),
   location: z.string().optional(),
-  formTitle: z.string().optional()
+  formTitle: z.string().optional(),
+  siteId: z.string().optional(),
+  organizationId: z.string().optional(),
+  returnPath: z.string().optional(),
+  sourcePage: z.string().optional(),
+  leadStatus: z.string().optional()
 });
 
 export const footerSchema = z.object({

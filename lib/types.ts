@@ -33,6 +33,19 @@ export type Site = {
   default_language: string;
   setup_step: SetupStep;
   setup_completed_at: string | null;
+  published_at: string | null;
+  published_by: string | null;
+  publication_status: "draft" | "published" | "unpublished" | "suspended";
+  primary_subdomain: string | null;
+  seo_title: string | null;
+  seo_description: string | null;
+  seo_keywords: string | null;
+  og_title: string | null;
+  og_description: string | null;
+  og_image_media_id: string | null;
+  robots_index: boolean;
+  robots_follow: boolean;
+  last_published_version_id: string | null;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -176,4 +189,72 @@ export type SiteMedia = {
   created_at: string;
   updated_at: string;
   signed_url?: string;
+};
+
+export type SiteVersion = {
+  id: string;
+  site_id: string;
+  version_number: number;
+  snapshot: unknown;
+  created_by: string;
+  created_at: string;
+};
+
+export type SiteDomain = {
+  id: string;
+  site_id: string;
+  organization_id: string;
+  domain: string;
+  domain_type: "platform_subdomain" | "custom_domain";
+  status: "pending" | "verified" | "active" | "failed" | "removed";
+  verification_token: string | null;
+  verification_method: string | null;
+  verification_details: unknown;
+  is_primary: boolean;
+  verified_at: string | null;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ContactLead = {
+  id: string;
+  site_id: string;
+  organization_id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  whatsapp: string | null;
+  subject: string | null;
+  message: string;
+  source_page: string | null;
+  source_url: string | null;
+  utm_source: string | null;
+  utm_medium: string | null;
+  utm_campaign: string | null;
+  utm_term: string | null;
+  utm_content: string | null;
+  status: "new" | "contacted" | "qualified" | "closed" | "spam";
+  is_read: boolean;
+  submitted_at: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type LeadNotificationSetting = {
+  id: string;
+  site_id: string;
+  notification_email: string | null;
+  send_email_notifications: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type SitePublishHistory = {
+  id: string;
+  site_id: string;
+  site_version_id: string | null;
+  action: "published" | "republished" | "unpublished";
+  performed_by: string;
+  created_at: string;
 };

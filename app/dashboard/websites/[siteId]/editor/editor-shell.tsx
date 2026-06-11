@@ -23,16 +23,18 @@ const tabs = [
 function EditorTabContent({
   activeTab,
   siteId,
+  site,
   organizationId,
   context
 }: {
   activeTab: string;
   siteId: string;
+  site: Awaited<ReturnType<typeof requireSiteSetup>>["site"];
   organizationId: string;
   context: Awaited<ReturnType<typeof loadEditorContext>>;
 }) {
   if (activeTab === "images") return <ImagesTab siteId={siteId} organizationId={organizationId} context={context} />;
-  if (activeTab === "design") return <DesignTab siteId={siteId} context={context} />;
+  if (activeTab === "design") return <DesignTab siteId={siteId} site={site} context={context} />;
   if (activeTab === "sections") return <SectionsTab siteId={siteId} context={context} />;
   return <ContentTab siteId={siteId} context={context} />;
 }
@@ -110,7 +112,7 @@ export async function EditorShell({
               You can view this editor and preview, but your organisation role cannot make changes.
             </Card>
           ) : null}
-          <EditorTabContent activeTab={active} siteId={setup.site.id} organizationId={setup.organization.id} context={context} />
+          <EditorTabContent activeTab={active} siteId={setup.site.id} site={setup.site} organizationId={setup.organization.id} context={context} />
         </aside>
 
         <section className="grid gap-3">

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { CheckCircle2, Mail, MapPin, Menu, Phone, Wrench } from "lucide-react";
+import { submitLeadAction } from "@/app/publishing-actions";
 import type { z } from "zod";
 import type {
   aboutSchema,
@@ -350,6 +351,7 @@ export function ContactCta({ content }: { content: z.infer<typeof ctaSchema> }) 
 }
 
 export function ContactMapForm({ content }: { content: z.infer<typeof contactSchema> }) {
+  const canSubmit = Boolean(content.siteId && content.organizationId);
   return (
     <section className="bg-white">
       <div className="mx-auto grid max-w-7xl gap-8 px-5 py-16 lg:grid-cols-[0.8fr_1.2fr]">
@@ -364,19 +366,37 @@ export function ContactMapForm({ content }: { content: z.infer<typeof contactSch
             Service area map placeholder
           </div>
         </div>
-        <form className="grid gap-4 rounded-[var(--site-card-radius)] border border-[var(--site-border)] bg-[var(--site-surface)] p-5" aria-label={content.formTitle ?? "Contact enquiry form"}>
+        <form action={canSubmit ? submitLeadAction : undefined} className="grid gap-4 rounded-[var(--site-card-radius)] border border-[var(--site-border)] bg-[var(--site-surface)] p-5" aria-label={content.formTitle ?? "Contact enquiry form"}>
+          {canSubmit ? (
+            <>
+              <input type="hidden" name="siteId" value={content.siteId} />
+              <input type="hidden" name="organizationId" value={content.organizationId} />
+              <input type="hidden" name="returnPath" value={content.returnPath ?? ""} />
+              <input type="hidden" name="sourcePage" value={content.sourcePage ?? ""} />
+              <input type="hidden" name="submittedAt" value={Date.now()} />
+              <input type="text" name="companyWebsite" tabIndex={-1} autoComplete="off" className="hidden" aria-hidden="true" />
+            </>
+          ) : null}
           <h3 className="font-[var(--site-heading-font)] text-xl font-bold text-[var(--site-ink)]">{content.formTitle ?? "Send an enquiry"}</h3>
-          {["Name", "Phone", "Email"].map((label) => (
-            <label key={label} className="grid gap-2 text-sm font-semibold text-[var(--site-ink)]">
-              {label}
-              <input className="min-h-11 rounded-[var(--site-button-radius)] border border-[var(--site-border)] bg-white px-3 focus:outline-none focus:ring-2 focus:ring-[var(--site-primary)]" />
-            </label>
-          ))}
+          {content.leadStatus === "success" ? <p className="rounded-[var(--site-button-radius)] bg-white px-3 py-2 text-sm font-semibold text-[var(--site-primary)]">Thanks. Your enquiry has been sent.</p> : null}
+          {content.leadStatus === "error" ? <p className="rounded-[var(--site-button-radius)] bg-white px-3 py-2 text-sm font-semibold text-red-700">Please check the form and try again.</p> : null}
+          <label className="grid gap-2 text-sm font-semibold text-[var(--site-ink)]">
+            Name
+            <input name="name" required className="min-h-11 rounded-[var(--site-button-radius)] border border-[var(--site-border)] bg-white px-3 focus:outline-none focus:ring-2 focus:ring-[var(--site-primary)]" />
+          </label>
+          <label className="grid gap-2 text-sm font-semibold text-[var(--site-ink)]">
+            Phone
+            <input name="phone" className="min-h-11 rounded-[var(--site-button-radius)] border border-[var(--site-border)] bg-white px-3 focus:outline-none focus:ring-2 focus:ring-[var(--site-primary)]" />
+          </label>
+          <label className="grid gap-2 text-sm font-semibold text-[var(--site-ink)]">
+            Email
+            <input name="email" type="email" className="min-h-11 rounded-[var(--site-button-radius)] border border-[var(--site-border)] bg-white px-3 focus:outline-none focus:ring-2 focus:ring-[var(--site-primary)]" />
+          </label>
           <label className="grid gap-2 text-sm font-semibold text-[var(--site-ink)]">
             Service request
-            <textarea rows={5} className="rounded-[var(--site-button-radius)] border border-[var(--site-border)] bg-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--site-primary)]" />
+            <textarea name="message" rows={5} required className="rounded-[var(--site-button-radius)] border border-[var(--site-border)] bg-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--site-primary)]" />
           </label>
-          <button type="button" className="min-h-11 rounded-[var(--site-button-radius)] bg-[var(--site-primary)] px-5 text-sm font-bold text-white">
+          <button type={canSubmit ? "submit" : "button"} className="min-h-11 rounded-[var(--site-button-radius)] bg-[var(--site-primary)] px-5 text-sm font-bold text-white">
             Submit enquiry
           </button>
         </form>
