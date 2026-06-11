@@ -63,6 +63,14 @@ export function AppShell({
   const mobileNavLinks = mode === "dashboard" ? dashboardLinks : allLinks.slice(0, 5);
 
   const homeHref = mode === "admin" ? "/admin" : mode === "agency" ? "/agency" : mode === "client" ? "/client" : "/dashboard";
+  const mobileGridClass =
+    mobileNavLinks.length === 5
+      ? "grid-cols-5"
+      : mobileNavLinks.length === 4
+        ? "grid-cols-4"
+        : mobileNavLinks.length === 3
+          ? "grid-cols-3"
+          : "grid-cols-2";
 
   return (
     <div className="min-h-[100svh] min-w-0 overflow-x-hidden bg-canvas lg:grid lg:grid-cols-[260px_1fr]">
@@ -74,7 +82,7 @@ export function AppShell({
             Studio OS
           </Link>
         </div>
-        <nav className="flex-1 grid gap-0.5 px-3 pb-4">
+        <nav className="flex flex-1 flex-col gap-0.5 px-3 pb-4">
           {allLinks.map((link) => (
             <Link
               key={link.href}
@@ -146,7 +154,7 @@ export function AppShell({
         className={cn(
           "fixed bottom-0 left-0 right-0 z-30 border-t border-line bg-white/95 backdrop-blur-sm",
           "grid pb-[env(safe-area-inset-bottom,0px)] lg:hidden",
-          `grid-cols-${mobileNavLinks.length}`
+          mobileGridClass
         )}
         aria-label="Main navigation"
       >

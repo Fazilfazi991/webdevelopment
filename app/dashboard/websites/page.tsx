@@ -20,7 +20,7 @@ import { inputClassName } from "@/components/ui/field";
 import { platformDomain } from "@/lib/publishing/constants";
 import { requireDashboardContext } from "@/lib/data";
 import { setupPath } from "@/lib/setup";
-import type { BusinessCategory, ContactLead, Industry, Site, SiteTemplateSelection, Template } from "@/lib/types";
+import type { BusinessCategory, Industry, Site, SiteTemplateSelection, Template } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 import { getWebsiteCardState, type WebsiteCardState } from "@/app/dashboard/websites/website-card-state";
 
@@ -34,8 +34,6 @@ const badgeClass: Record<WebsiteCardState["state"], string> = {
   unpublished: "border-slate-200 bg-slate-50 text-slate-700",
   suspended: "border-red-200 bg-red-50 text-red-700"
 };
-
-type LeadSummary = Pick<ContactLead, "site_id" | "status" | "is_read">;
 
 type WebsiteView = {
   site: Site;
@@ -63,7 +61,6 @@ function changeDesignHref(siteId: string, categoryId?: string | null) {
 }
 
 function coverImage(template?: Template | null) {
-  if (template?.thumbnail_url) return template.thumbnail_url;
   if (template?.slug) return `/templates/${template.slug}/cover.webp`;
   return "/templates/technical-services-modern/cover.webp";
 }
@@ -388,17 +385,12 @@ export default async function WebsitesPage() {
   const { data: templates } = templateIds.length
     ? await supabase.from("templates").select("*").in("id", templateIds).returns<Template[]>()
     : { data: [] as Template[] };
-  const { data: leads } = siteIds.length
-    ? await supabase.from("contact_leads").select("site_id,status,is_read").in("site_id", siteIds).returns<LeadSummary[]>()
-    : { data: [] as LeadSummary[] };
-
   const views = sites.map((site) => {
     const selection = selections?.find((item) => item.site_id === site.id);
     const industry = industries?.find((item) => item.id === selection?.industry_id);
     const category = categories?.find((item) => item.id === selection?.business_category_id);
     const template = templates?.find((item) => item.id === selection?.template_id);
     const state = getWebsiteCardState({ site, selection, industry, category, template });
-    const siteLeads = (leads ?? []).filter((lead) => lead.site_id === site.id);
 
     return {
       site,
@@ -407,8 +399,8 @@ export default async function WebsitesPage() {
       industry,
       category,
       template,
-      leadCount: siteLeads.length,
-      unreadLeadCount: siteLeads.filter((lead) => !lead.is_read).length
+      leadCount: 0,
+      unreadLeadCount: 0
     };
   });
 
