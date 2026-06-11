@@ -13,12 +13,20 @@ const routes = [
   { path: "/agency/websites", allowRedirect: true, expectCss: true },
   { path: "/agency/team", allowRedirect: true, expectCss: true },
   { path: "/agency/invitations", allowRedirect: true, expectCss: true },
+  { path: "/agency/ai-usage", allowRedirect: true, expectCss: true },
   { path: "/client", allowRedirect: true, expectCss: true },
   { path: "/client/websites", allowRedirect: true, expectCss: true },
+  { path: "/admin/ai", allowRedirect: true, expectCss: true },
+  { path: "/admin/ai/prompts", allowRedirect: true, expectCss: true },
+  { path: "/admin/ai/usage", allowRedirect: true, expectCss: true },
   siteId ? { path: `/dashboard/websites/${siteId}/preview`, allowRedirect: true, expectCss: true } : null,
+  siteId ? { path: `/dashboard/websites/${siteId}/ai-setup`, allowRedirect: true, allowNotFound: true, expectCss: true } : null,
+  siteId ? { path: `/dashboard/websites/${siteId}/ai-suggestions`, allowRedirect: true, allowNotFound: true, expectCss: true } : null,
   siteId ? { path: `/client/websites/${siteId}`, allowRedirect: true, allowNotFound: true, expectCss: true } : null,
   siteId ? { path: `/client/websites/${siteId}/editor`, allowRedirect: true, allowNotFound: true, expectCss: true } : null,
   siteId ? { path: `/client/websites/${siteId}/preview`, allowRedirect: true, allowNotFound: true, expectCss: true } : null,
+  siteId ? { path: `/client/websites/${siteId}/ai-setup`, allowRedirect: true, allowNotFound: true, expectCss: true } : null,
+  siteId ? { path: `/client/websites/${siteId}/ai-suggestions`, allowRedirect: true, allowNotFound: true, expectCss: true } : null,
   subdomain ? { path: `/sites/${subdomain}`, allowNotFound: true, expectCss: true } : null
   , invitationToken ? { path: `/invitations/${invitationToken}`, allowRedirect: true, allowNotFound: true, expectCss: true } : null
 ].filter(Boolean);
@@ -66,6 +74,7 @@ async function checkRoute(route) {
   for (const route of routes) results.push(await checkRoute(route));
   for (const result of results) console.log(`${result.status} ${result.path} ${result.note}`);
   if (!siteId) console.log("SKIP /dashboard/websites/[siteId]/preview: set SMOKE_SITE_ID to include it.");
+  if (!siteId) console.log("SKIP /dashboard/websites/[siteId]/ai-setup and /ai-suggestions: set SMOKE_SITE_ID to include them.");
   if (!siteId) console.log("SKIP /client/websites/[siteId] routes: set SMOKE_SITE_ID to include them.");
   if (!subdomain) console.log("SKIP /sites/[subdomain]: set SMOKE_SUBDOMAIN to include it.");
   if (!invitationToken) console.log("SKIP /invitations/[token]: set SMOKE_INVITATION_TOKEN to include it.");

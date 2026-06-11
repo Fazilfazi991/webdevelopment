@@ -13,6 +13,8 @@ For each route verify: direct URL load, hard refresh, client-side navigation, br
 | `/dashboard/websites` | Authenticated | Website cards, publish controls, and fallbacks load. |
 | `/dashboard/websites/[siteId]/editor` | Authenticated | Editor shell loads or shows a visible editor error state. |
 | `/dashboard/websites/[siteId]/preview` | Authenticated | Preview toolbar remains visible; missing template/data shows a fallback. |
+| `/dashboard/websites/[siteId]/ai-setup` | Authenticated editable site | AI setup loads, or missing provider configuration shows a useful message. |
+| `/dashboard/websites/[siteId]/ai-suggestions` | Authenticated site access | AI suggestions, generation history, usage summary, and fallback states load. |
 | `/dashboard/leads` | Authenticated | Lead inbox loads or shows an empty state. |
 | `/sites/[subdomain]` | Public | Published site loads; unpublished/missing site shows not-found copy. |
 | `/sites/[subdomain]/about` | Public | Published page loads or shows not-found copy. |
@@ -23,11 +25,17 @@ For each route verify: direct URL load, hard refresh, client-side navigation, br
 | `/agency/websites` | Authenticated agency member | Agency website list and client-create flow load. |
 | `/agency/team` | Authenticated agency member | Team member list and invite prep form load. |
 | `/agency/invitations` | Authenticated agency member | Invitation form and records load. |
+| `/agency/ai-usage` | Authenticated agency member | Agency AI usage summary and recent AI actions load. |
 | `/client` | Authenticated client access user | Simplified client dashboard loads. |
 | `/client/websites` | Authenticated client access user | Assigned websites load. |
 | `/client/websites/[siteId]` | Authenticated assigned client | Website details load or visible not-found state appears. |
 | `/client/websites/[siteId]/editor` | Authenticated assigned client | Permission-aware editor loads; denied actions stay hidden and blocked. |
 | `/client/websites/[siteId]/preview` | Authenticated assigned client | Preview loads or visible fallback appears. |
+| `/client/websites/[siteId]/ai-setup` | Authenticated assigned client | AI setup loads for editors; viewers see disabled controls. |
+| `/client/websites/[siteId]/ai-suggestions` | Authenticated assigned client | Suggestions load; viewers cannot apply or reject. |
+| `/admin/ai` | Platform admin | AI usage, status, provider, token, and failure summaries load without secrets. |
+| `/admin/ai/prompts` | Platform admin | Prompt version metadata loads without provider secrets. |
+| `/admin/ai/usage` | Platform admin | Usage-limit management loads. |
 | `/invitations/[token]` | Public/authenticated | Login prompt, invalid, expired, or acceptance state is visible. |
 
 Extra refresh loop:
@@ -39,8 +47,9 @@ Extra refresh loop:
 5. Navigate dashboard -> websites -> editor -> preview -> dashboard with browser back and forward.
 6. Navigate agency -> clients -> websites -> invitations -> team with browser back and forward.
 7. Navigate client -> websites -> website detail -> editor -> preview with browser back and forward.
-8. Repeat at a mobile-width viewport.
-9. Restart the server and repeat the same route checks.
+8. Navigate website detail -> AI setup -> AI suggestions -> editor with browser back and forward.
+9. Repeat at a mobile-width viewport.
+10. Restart the server and repeat the same route checks.
 
 Automated smoke check:
 

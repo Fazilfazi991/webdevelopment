@@ -1,4 +1,5 @@
 import { saveThemeAction } from "@/app/editor-actions";
+import { EditorAiTools } from "@/app/ai-pages";
 import { saveCustomDomainAction, saveSeoAction } from "@/app/publishing-actions";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -70,9 +71,11 @@ export function DesignTab({ siteId, site, context }: { siteId: string; site: Sit
         <Field label="SEO title">
           <input className={inputClassName} name="seoTitle" defaultValue={site.seo_title ?? ""} maxLength={70} disabled={!context.canEdit} />
         </Field>
+        <EditorAiTools siteId={siteId} fieldKey="seo_title" currentValue={site.seo_title ?? ""} canEdit={context.canEdit} />
         <Field label="SEO description">
           <textarea className={inputClassName} name="seoDescription" defaultValue={site.seo_description ?? ""} maxLength={160} rows={3} disabled={!context.canEdit} />
         </Field>
+        <EditorAiTools siteId={siteId} fieldKey="seo_description" currentValue={site.seo_description ?? ""} canEdit={context.canEdit} />
         <Field label="Keywords">
           <input className={inputClassName} name="seoKeywords" defaultValue={site.seo_keywords ?? ""} disabled={!context.canEdit} />
         </Field>

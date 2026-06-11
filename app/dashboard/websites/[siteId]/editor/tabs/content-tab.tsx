@@ -1,4 +1,5 @@
 import { saveBusinessProfileAction, saveSectionContentAction } from "@/app/editor-actions";
+import { EditorAiTools } from "@/app/ai-pages";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Field, inputClassName } from "@/components/ui/field";
@@ -30,9 +31,11 @@ function SectionEditor({ siteId, section, canEdit }: { siteId: string; section: 
         <Field label="Heading">
           <input className={inputClassName} name="title" defaultValue={text(content.title)} maxLength={70} disabled={!canEdit} />
         </Field>
+        <EditorAiTools siteId={siteId} sectionKey={section.section_key} fieldKey="title" currentValue={text(content.title)} canEdit={canEdit} />
         <Field label="Description">
           <textarea className={inputClassName} name="body" defaultValue={text(content.body)} rows={4} maxLength={240} disabled={!canEdit} />
         </Field>
+        <EditorAiTools siteId={siteId} sectionKey={section.section_key} fieldKey="body" currentValue={text(content.body)} canEdit={canEdit} />
         <Field label="Primary CTA label and link">
           <div className="grid gap-2 sm:grid-cols-2">
             <input className={inputClassName} name="primaryActionLabel" defaultValue={text((content.primaryAction as Record<string, unknown> | undefined)?.label)} maxLength={30} placeholder="Request a quote" disabled={!canEdit} />
@@ -74,9 +77,11 @@ export function ContentTab({ siteId, context }: { siteId: string; context: Await
           <Field label="Tagline">
             <input className={inputClassName} name="tagline" defaultValue={profile?.tagline ?? ""} maxLength={120} disabled={!context.canEdit} />
           </Field>
+          <EditorAiTools siteId={siteId} fieldKey="tagline" currentValue={profile?.tagline ?? ""} canEdit={context.canEdit} />
           <Field label="Short description">
             <textarea className={inputClassName} name="shortDescription" defaultValue={profile?.short_description ?? ""} rows={3} maxLength={240} disabled={!context.canEdit} />
           </Field>
+          <EditorAiTools siteId={siteId} fieldKey="short_description" currentValue={profile?.short_description ?? ""} canEdit={context.canEdit} />
           <Field label="Full company description">
             <textarea className={inputClassName} name="fullDescription" defaultValue={profile?.full_description ?? ""} rows={5} maxLength={800} disabled={!context.canEdit} />
           </Field>

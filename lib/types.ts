@@ -393,3 +393,73 @@ export type SiteActivityLog = {
   metadata: Record<string, unknown>;
   created_at: string;
 };
+
+export type AiRequestType =
+  | "full_site_content"
+  | "section_content"
+  | "rewrite"
+  | "shorten"
+  | "grammar_fix"
+  | "seo_suggestion"
+  | "translation"
+  | "section_recommendation"
+  | "image_requirements";
+
+export type AiSiteProfile = {
+  id: string;
+  site_id: string;
+  business_name: string | null;
+  business_type: string | null;
+  industry: string | null;
+  target_audience: string | null;
+  primary_location: string | null;
+  service_areas: string[];
+  services: string[];
+  unique_selling_points: string[];
+  tone: string | null;
+  preferred_language: string | null;
+  additional_languages: string[];
+  primary_goal: string | null;
+  cta_preference: string | null;
+  contact_preference: string | null;
+  special_notes: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type AiGenerationRequest = {
+  id: string;
+  site_id: string;
+  requested_by: string;
+  request_type: AiRequestType;
+  provider: string | null;
+  model: string | null;
+  input_snapshot: Record<string, unknown>;
+  output_snapshot: Record<string, unknown>;
+  status: "pending" | "completed" | "failed" | "cancelled";
+  error_code: string | null;
+  error_summary: string | null;
+  tokens_input: number;
+  tokens_output: number;
+  estimated_cost: number;
+  created_at: string;
+  completed_at: string | null;
+};
+
+export type AiContentSuggestion = {
+  id: string;
+  site_id: string;
+  request_id: string | null;
+  section_key: string | null;
+  field_key: string;
+  suggestion_type: "business_profile" | "section_field" | "seo" | "translation" | "section_recommendation" | "image_requirement";
+  language: string;
+  original_value: unknown;
+  suggested_value: unknown;
+  status: "pending" | "approved" | "rejected" | "applied" | "expired";
+  applied_by: string | null;
+  applied_at: string | null;
+  created_at: string;
+  updated_at: string;
+};

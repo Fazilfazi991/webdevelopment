@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BarChart3, Building2, FileImage, Globe2, LayoutDashboard, LogOut, Mail, Settings, Users } from "lucide-react";
+import { BarChart3, Bot, Building2, FileImage, Globe2, LayoutDashboard, LogOut, Mail, Settings, Users } from "lucide-react";
 import { logoutAction } from "@/app/auth/actions";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -19,6 +19,7 @@ const adminLinks = [
   { href: "/admin/industries", label: "Industries", icon: Building2 },
   { href: "/admin/business-categories", label: "Business Categories", icon: BarChart3 },
   { href: "/admin/templates", label: "Templates", icon: LayoutDashboard },
+  { href: "/admin/ai", label: "AI", icon: Bot },
   { href: "/admin/sections", label: "Section Library", icon: LayoutDashboard },
   { href: "/admin/leads", label: "Leads", icon: Users },
   { href: "/admin/plans", label: "Plans", icon: BarChart3 },
@@ -31,6 +32,7 @@ const agencyLinks = [
   { href: "/agency/websites", label: "Websites", icon: Globe2 },
   { href: "/agency/team", label: "Team", icon: Building2 },
   { href: "/agency/invitations", label: "Invitations", icon: Mail },
+  { href: "/agency/ai-usage", label: "AI Usage", icon: Bot },
   { href: "/agency/settings", label: "Settings", icon: Settings }
 ];
 
