@@ -29,24 +29,56 @@ export async function requireDashboardContext() {
     .order("created_at", { ascending: true });
 
   const membership = memberships?.[0];
-  const organization = membership?.organizations as Organization | null | undefined;
-
-  if (!organization) redirect("/onboarding");
+  let organization = membership?.organizations as Organization | null | undefined;
+  const membershipRole = membership?.role as string | undefined;
 
   const { data: sites } = await supabase
     .from("sites")
     .select("*")
-    .eq("organization_id", organization.id)
     .order("updated_at", { ascending: false })
     .returns<Site[]>();
+
+  const accessibleSites = sites ?? [];
+
+  if (!organization) {
+    if (accessibleSites.length > 0) {
+      const firstSite = accessibleSites[0];
+      const { data: siteOrg } = await supabase
+        .from("organizations")
+        .select("*")
+        .eq("id", firstSite.organization_id)
+        .maybeSingle<Organization>();
+      if (siteOrg) {
+        organization = siteOrg;
+      }
+    }
+  }
+
+  if (!organization && accessibleSites.length === 0) {
+    redirect("/onboarding");
+  }
+
+  if (!organization) {
+    organization = {
+      id: crypto.randomUUID(),
+      name: "My Workspace",
+      slug: "my-workspace",
+      country_code: "US",
+      default_currency: "USD",
+      timezone: "UTC",
+      created_by: user.id,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+  }
 
   return {
     supabase,
     user,
     profile,
     organization,
-    membershipRole: membership?.role as string | undefined,
-    sites: sites ?? []
+    membershipRole,
+    sites: accessibleSites
   };
 }
 

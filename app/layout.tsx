@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Guided Website Builder",
-  description: "A guided multi-tenant website builder for professional business websites."
+  title: "Create your business website from your phone in five minutes",
+  description: "A mobile-first guided website builder for business owners to prepare, preview, publish, and manage leads from their phone."
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

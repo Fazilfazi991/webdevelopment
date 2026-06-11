@@ -46,8 +46,9 @@ assert(templatesPage.includes("Recommended for you"), "Template library should b
 assert(setupActions.includes("getRecommendedTemplateForCategory"), "Category selection should auto-load a recommended template.");
 assert(setupActions.includes("template_selected"), "Category selection should route to website-ready state when a recommendation exists.");
 assert(completePage.includes("Your website is ready"), "Completion page should be a website-ready preview.");
-assert(completePage.includes("Continue with this design"), "Completion page should lead with continue CTA.");
-assert(completePage.includes("Explore other designs"), "Completion page should keep template browsing optional.");
+assert(completePage.includes("Publish Website"), "Completion page should lead with publish CTA.");
+assert(completePage.includes("Mobile Preview"), "Completion page should default to mobile preview.");
+assert(completePage.includes("Explore Other Designs"), "Completion page should keep template browsing optional.");
 assert(setupProgress.includes("Business Basics") && setupProgress.includes("Website Ready"), "Setup progress should use customer-facing labels.");
 assert(newWebsitePage.includes("MobileOnboardingWizard"), "Create website page should render MobileOnboardingWizard.");
 assert(newWebsiteWizard.includes("Tell us about your business"), "Create website page wizard should use business-basics copy.");

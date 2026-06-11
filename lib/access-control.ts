@@ -1,6 +1,12 @@
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/data";
-import type { Agency, AgencyMember, Site, SiteAccessMember, SiteAccessRole, SitePermission } from "@/lib/types";
+import type { Agency, AgencyMember, Organization, Site, SiteAccessMember, SiteAccessRole, SitePermission } from "@/lib/types";
+
+type SupabaseServerClient = Awaited<ReturnType<typeof requireUser>>["supabase"];
+type OrganizationMembership = {
+  organization_id: string;
+  role: string;
+};
 
 export const permissionPresets: Record<SiteAccessRole, Partial<Record<SitePermission, boolean>>> = {
   agency_owner: {
@@ -108,4 +114,102 @@ export async function requireClientSites() {
     .in("access_role", ["client_owner", "client_editor", "client_viewer"])
     .returns<Array<SiteAccessMember & { sites: Site | null }>>();
   return { supabase, user, access: access ?? [], sites: (access ?? []).map((item) => item.sites).filter(Boolean) as Site[] };
+}
+
+export async function getAccessibleSitesForCurrentUser(supabase: SupabaseServerClient, userId: string) {
+  const { data: sites } = await supabase
+    .from("sites")
+    .select("*")
+    .order("updated_at", { ascending: false })
+    .returns<Site[]>();
+
+  const { data: memberships } = await supabase
+    .from("organization_members")
+    .select("*")
+    .eq("user_id", userId)
+    .returns<OrganizationMembership[]>();
+
+  const { data: accessMembers } = await supabase
+    .from("site_access_members")
+    .select("*")
+    .eq("user_id", userId)
+    .returns<SiteAccessMember[]>();
+
+  const membershipMap = new Map(memberships?.map((m) => [m.organization_id, m]) ?? []);
+  const accessMap = new Map(accessMembers?.map((a) => [a.site_id, a]) ?? []);
+
+  return (sites ?? []).map((site) => {
+    const membership = membershipMap.get(site.organization_id);
+    const siteAccess = accessMap.get(site.id);
+    return {
+      site,
+      membershipRole: membership?.role as string | undefined,
+      siteAccess
+    };
+  });
+}
+
+export async function getAccessibleSiteById(supabase: SupabaseServerClient, userId: string, siteId: string) {
+  const { data: site } = await supabase
+    .from("sites")
+    .select("*")
+    .eq("id", siteId)
+    .maybeSingle<Site>();
+
+  if (!site) return null;
+
+  const { data: organization } = await supabase
+    .from("organizations")
+    .select("*")
+    .eq("id", site.organization_id)
+    .maybeSingle<Organization>();
+
+  if (!organization) return null;
+
+  const { data: membership } = await supabase
+    .from("organization_members")
+    .select("*")
+    .eq("organization_id", site.organization_id)
+    .eq("user_id", userId)
+    .maybeSingle<OrganizationMembership>();
+
+  const { data: siteAccess } = await supabase
+    .from("site_access_members")
+    .select("*")
+    .eq("site_id", site.id)
+    .eq("user_id", userId)
+    .maybeSingle<SiteAccessMember>();
+
+  let isPlatformAdmin = false;
+  if (!membership && !siteAccess) {
+    const { data: admin } = await supabase
+      .from("platform_admins")
+      .select("id")
+      .eq("user_id", userId)
+      .maybeSingle();
+    isPlatformAdmin = !!admin;
+    if (!isPlatformAdmin) {
+      return null;
+    }
+  }
+
+  return {
+    site,
+    organization,
+    membershipRole: membership?.role as string | undefined,
+    siteAccess,
+    isPlatformAdmin
+  };
+}
+
+export async function requireSitePermission(supabase: SupabaseServerClient, userId: string, siteId: string, permission: SitePermission) {
+  const accessContext = await getAccessibleSiteById(supabase, userId, siteId);
+  if (!accessContext) {
+    redirect("/dashboard/websites");
+  }
+  const allowed = hasPermission(accessContext.siteAccess, permission, accessContext.membershipRole) || accessContext.isPlatformAdmin;
+  if (!allowed) {
+    redirect("/dashboard/websites");
+  }
+  return accessContext;
 }

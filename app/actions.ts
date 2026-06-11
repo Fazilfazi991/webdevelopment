@@ -183,11 +183,16 @@ export async function createOrganizationAutoAction(formData: FormData) {
 
   if (error || !org) redirect(`/onboarding?error=${encodeURIComponent(error?.message ?? "Could not create organisation.")}`);
 
-  await supabase.from("organization_members").insert({
+  const { error: memberError } = await supabase.from("organization_members").insert({
     organization_id: org.id,
     user_id: user.id,
     role: "owner"
   });
+
+  if (memberError) {
+    await supabase.from("organizations").delete().eq("id", org.id);
+    redirect(`/onboarding?error=${encodeURIComponent(memberError.message)}`);
+  }
 
   revalidatePath("/", "layout");
   redirect("/dashboard/websites/new");
@@ -245,7 +250,7 @@ export async function createSiteWithProfileAction(formData: FormData) {
   if (siteError || !site) redirect(`/dashboard/websites/new?error=${encodeURIComponent(siteError?.message ?? "Could not create website.")}`);
 
   // Create the business profile record
-  await supabase.from("site_business_profiles").insert({
+  const { error: profileError } = await supabase.from("site_business_profiles").insert({
     site_id: site.id,
     company_name: name,
     phone: phone,
@@ -256,6 +261,11 @@ export async function createSiteWithProfileAction(formData: FormData) {
     map_embed_url: mapEmbedUrl,
     working_hours: workingHours ? { description: workingHours } : null
   });
+
+  if (profileError) {
+    await supabase.from("sites").delete().eq("id", site.id);
+    redirect(`/dashboard/websites/new?error=${encodeURIComponent(profileError.message)}`);
+  }
 
   revalidatePath("/dashboard");
   redirect(`/dashboard/websites/${site.id}/setup/industry`);

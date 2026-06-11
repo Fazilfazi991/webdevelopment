@@ -119,13 +119,15 @@ function LeadCard({ lead, siteName }: { lead: ContactLead; siteName: string }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function LeadsPage({ searchParams }: { searchParams: { status?: string; siteId?: string } }) {
-  const { supabase, organization, sites } = await requireDashboardContext();
+  const { supabase, sites } = await requireDashboardContext();
 
-  let query = supabase
-    .from("contact_leads")
-    .select("*")
-    .eq("organization_id", organization.id)
-    .order("submitted_at", { ascending: false });
+  let query = supabase.from("contact_leads").select("*");
+  if (sites.length > 0) {
+    query = query.in("site_id", sites.map((s) => s.id));
+  } else {
+    query = query.eq("site_id", "00000000-0000-0000-0000-000000000000");
+  }
+  query = query.order("submitted_at", { ascending: false });
 
   if (searchParams.siteId) query = query.eq("site_id", searchParams.siteId);
   if (searchParams.status && leadStatuses.includes(searchParams.status as LeadStatus)) {

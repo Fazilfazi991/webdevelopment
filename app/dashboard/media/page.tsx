@@ -193,8 +193,14 @@ export default async function MediaPage({
   const selectedSiteId = searchParams.site && siteMap.has(searchParams.site) ? searchParams.site : "";
   const uploadSite = (searchParams.uploadSite && siteMap.get(searchParams.uploadSite)) ?? (selectedSiteId ? siteMap.get(selectedSiteId) : sites[0]);
 
-  let mediaQuery = supabase.from("site_media").select("*").eq("organization_id", organization.id);
-  if (selectedSiteId) mediaQuery = mediaQuery.eq("site_id", selectedSiteId);
+  let mediaQuery = supabase.from("site_media").select("*");
+  if (selectedSiteId) {
+    mediaQuery = mediaQuery.eq("site_id", selectedSiteId);
+  } else if (sites.length > 0) {
+    mediaQuery = mediaQuery.in("site_id", sites.map((s) => s.id));
+  } else {
+    mediaQuery = mediaQuery.eq("site_id", "00000000-0000-0000-0000-000000000000");
+  }
   const { data: mediaRows } = await mediaQuery.returns<SiteMedia[]>();
   const mediaWithUrls = await Promise.all(
     (mediaRows ?? []).map(async (item) => {

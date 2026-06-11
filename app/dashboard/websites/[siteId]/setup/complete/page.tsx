@@ -1,6 +1,7 @@
-import { ArrowRight, Edit3, Palette } from "lucide-react";
+import { Edit3, ExternalLink, Globe2, Monitor, Palette, Smartphone } from "lucide-react";
 import Image from "next/image";
-import { ButtonLink } from "@/components/ui/button";
+import { publishWebsiteAction } from "@/app/publishing-actions";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { SetupProgress } from "@/components/setup/setup-progress";
 import { SiteRenderer } from "@/components/site-renderer/site-renderer";
 import { applyEditorMerges, loadEditorContext } from "@/lib/site-editor/editor-loader";
@@ -15,43 +16,37 @@ export default async function CompletePage({ params }: { params: { siteId: strin
     : { template: null };
 
   const templateDescription = template
-    ? `${template.name} · Professional design ready for your business`
+    ? `${template.name} - Professional design ready for your business`
     : null;
 
   return (
     <div className="mx-auto grid max-w-6xl gap-6">
       <SetupProgress siteId={site.id} currentStep="template_selected" />
 
-      {/* Hero message */}
       <div className="grid gap-4 rounded-2xl border border-line bg-white p-6 shadow-soft md:p-8">
         <div className="grid gap-4 lg:grid-cols-[1fr_auto] lg:items-start">
           <div>
             <p className="text-sm font-semibold uppercase tracking-widest text-brand-700">
-              ✓ Your website is ready
+              Your website is ready
             </p>
             <h2 className="mt-2 text-3xl font-bold leading-tight text-ink">
-              We selected a professional design that matches your business.
+              We selected a professional design for your business.
             </h2>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
-              Review the prepared website below. Your business details, images, and contact
-              information stay saved if you choose another design later.
+              You can publish it now or make changes anytime. The first preview below shows the mobile website your customers will see on their phones.
             </p>
-            {templateDescription && (
+            {templateDescription ? (
               <p className="mt-4 inline-block rounded-xl bg-brand-50 px-4 py-2 text-sm font-semibold text-brand-700">
                 {templateDescription}
               </p>
-            )}
+            ) : null}
           </div>
 
-          {/* Template thumbnail */}
-          {template?.thumbnail_url || (template && `technical-services-modern`) ? (
+          {template?.thumbnail_url || template ? (
             <div className="hidden lg:block">
               <div className="relative h-24 w-36 overflow-hidden rounded-xl border border-line shadow-sm">
                 <Image
-                  src={
-                    template.thumbnail_url ??
-                    `/templates/${template.slug}/thumbnail.webp`
-                  }
+                  src={template.thumbnail_url ?? `/templates/${template.slug}/thumbnail.webp`}
                   alt={template.name}
                   fill
                   className="object-cover"
@@ -61,66 +56,75 @@ export default async function CompletePage({ params }: { params: { siteId: strin
           ) : null}
         </div>
 
-        {/* CTAs */}
-        <div className="flex flex-wrap gap-3 pt-2">
-          <ButtonLink href={`/dashboard/websites/${site.id}/editor`}>
-            Continue with this design
-            <ArrowRight size={16} />
+        <div className="grid gap-3 pt-2 sm:flex sm:flex-wrap">
+          <form action={publishWebsiteAction}>
+            <input type="hidden" name="siteId" value={site.id} />
+            <input type="hidden" name="subdomain" value={site.primary_subdomain ?? site.slug} />
+            <Button type="submit" className="w-full min-h-[52px] text-base sm:w-auto">
+              <Globe2 size={17} />
+              Publish Website
+            </Button>
+          </form>
+          <ButtonLink href={`/dashboard/websites/${site.id}/editor/settings`} variant="secondary" className="min-h-[52px]">
+            <Edit3 size={16} />
+            Edit Details
           </ButtonLink>
           <ButtonLink
             href={`/dashboard/websites/${site.id}/setup/templates${
               selection?.business_category_id ? `?category=${selection.business_category_id}` : ""
             }`}
-            variant="secondary"
+            variant="ghost"
+            className="min-h-[52px]"
           >
             <Palette size={16} />
-            Explore other designs
-          </ButtonLink>
-          <ButtonLink href={`/dashboard/websites/${site.id}/editor/settings`} variant="ghost">
-            <Edit3 size={16} />
-            Edit business details
+            Explore Other Designs
           </ButtonLink>
         </div>
       </div>
 
-      {/* Large website preview */}
-      <div className="overflow-hidden rounded-2xl border border-line bg-canvas shadow-soft">
-        <div className="flex items-center justify-between border-b border-line bg-white/80 px-4 py-2 backdrop-blur">
-          <div className="flex gap-1.5">
-            <span className="size-3 rounded-full bg-red-400" />
-            <span className="size-3 rounded-full bg-amber-400" />
-            <span className="size-3 rounded-full bg-emerald-400" />
+      <div className="grid gap-4 rounded-2xl border border-line bg-canvas p-4 shadow-soft md:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 className="text-lg font-bold text-ink">Mobile Preview</h3>
+            <p className="mt-1 text-sm text-muted">Phone layout is shown first because most customers will visit from mobile.</p>
           </div>
-          <span className="text-xs font-semibold text-muted">Website preview</span>
-          <div className="w-20" />
+          <div className="flex gap-2">
+            <span className="inline-flex min-h-10 items-center gap-2 rounded-full bg-brand-700 px-4 text-sm font-semibold text-white">
+              <Smartphone size={15} />
+              Mobile
+            </span>
+            <ButtonLink href={`/dashboard/websites/${site.id}/preview?device=desktop`} variant="secondary" className="min-h-10 rounded-full px-4">
+              <Monitor size={15} />
+              Desktop
+            </ButtonLink>
+          </div>
         </div>
-        <div className="h-[780px] max-h-[calc(100vh-280px)] overflow-x-hidden overflow-y-auto [&_.fixed]:absolute">
-          {merged.status === "ready" ? (
-            <SiteRenderer preview={merged.preview} pageSlug="home" />
-          ) : (
-            <div className="flex h-full min-h-[400px] items-center justify-center p-8 text-center">
-              <div>
-                <h3 className="text-xl font-bold text-ink">Website preview is being prepared</h3>
-                <p className="mt-2 max-w-md text-sm leading-6 text-muted">
-                  The preview will appear automatically once the template is fully configured.
-                  You can still continue with this design.
-                </p>
-                <div className="mt-6">
-                  <ButtonLink href={`/dashboard/websites/${site.id}/editor`}>
-                    Open editor
-                    <ArrowRight size={16} />
-                  </ButtonLink>
+
+        <div className="mx-auto w-full max-w-[390px] rounded-[2rem] border-[10px] border-ink bg-ink shadow-2xl">
+          <div className="mx-auto mt-2 h-5 w-24 rounded-full bg-black" />
+          <div className="mt-2 h-[680px] max-h-[70vh] overflow-x-hidden overflow-y-auto rounded-[1.4rem] bg-white [&_.fixed]:absolute">
+            {merged.status === "ready" ? (
+              <SiteRenderer preview={merged.preview} pageSlug="home" />
+            ) : (
+              <div className="flex h-full min-h-[400px] items-center justify-center p-8 text-center">
+                <div>
+                  <h3 className="text-xl font-bold text-ink">Website preview is being prepared</h3>
+                  <p className="mt-2 max-w-md text-sm leading-6 text-muted">
+                    The preview will appear automatically once the template is fully configured.
+                  </p>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
+        </div>
+
+        <div className="grid gap-3 sm:flex sm:items-center sm:justify-center">
+          <ButtonLink href={`/dashboard/websites/${site.id}/preview?device=mobile`} variant="secondary" target="_blank" rel="noreferrer" className="min-h-[48px]">
+            <ExternalLink size={16} />
+            Open Full Preview
+          </ButtonLink>
         </div>
       </div>
-
-      {/* Mobile preview note */}
-      <p className="text-center text-xs text-muted">
-        This is a desktop preview. Mobile layout adapts automatically. Use the editor to preview on tablet and mobile.
-      </p>
     </div>
   );
 }
