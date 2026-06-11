@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BarChart3, Bot, Building2, Globe2, LayoutDashboard, LogOut, Mail, Settings, Users } from "lucide-react";
+import { BarChart3, Bell, Bot, Building2, Globe2, LayoutDashboard, LogOut, Mail, Menu, Plus, Settings, Users } from "lucide-react";
 import { logoutAction } from "@/app/auth/actions";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -10,6 +10,13 @@ const dashboardLinks = [
   { href: "/dashboard/websites", label: "My Websites", icon: Globe2 },
   { href: "/dashboard/leads", label: "All Leads", icon: Users },
   { href: "/dashboard/settings", label: "Account", icon: Settings }
+];
+
+const dashboardMobileLinks = [
+  { href: "/dashboard", label: "Home", icon: LayoutDashboard },
+  { href: "/dashboard/websites", label: "Websites", icon: Globe2 },
+  { href: "/dashboard/settings", label: "Account", icon: Users },
+  { href: "/dashboard/settings", label: "More", icon: Settings }
 ];
 
 const adminLinks = [
@@ -58,7 +65,7 @@ export function AppShell({
 
   // On desktop, show all links in the sidebar.
   // On mobile bottom nav, show only the primary account-level tabs.
-  const mobileNavLinks = mode === "dashboard" ? dashboardLinks : allLinks.slice(0, 5);
+  const mobileNavLinks = mode === "dashboard" ? dashboardMobileLinks : allLinks.slice(0, 5);
 
   const homeHref = mode === "admin" ? "/admin" : mode === "agency" ? "/agency" : mode === "client" ? "/client" : "/dashboard";
   const mobileGridClass =
@@ -107,14 +114,15 @@ export function AppShell({
 
         {/* Mobile top bar */}
         <header className="flex items-center justify-between border-b border-line bg-white px-4 py-3 lg:hidden">
+          <button className="inline-flex size-10 items-center justify-center rounded-xl text-ink" aria-label="Open menu">
+            <Menu size={21} />
+          </button>
           <Link href={homeHref} className="text-base font-bold text-ink">
             Studio OS
           </Link>
-          <form action={logoutAction}>
-            <Button variant="ghost" className="min-h-10 px-2 text-muted" aria-label="Log out">
-              <LogOut size={18} />
-            </Button>
-          </form>
+          <button className="inline-flex size-10 items-center justify-center rounded-xl text-ink" aria-label="Notifications">
+            <Bell size={20} />
+          </button>
         </header>
 
         {/* Desktop page header */}
@@ -134,7 +142,7 @@ export function AppShell({
         </header>
 
         {/* Mobile page title */}
-        {title && (
+        {title && mode !== "dashboard" && (
           <div className="border-b border-line bg-white px-4 pb-3 pt-4 lg:hidden">
             <h1 className="text-lg font-bold text-ink">{title}</h1>
             {subtitle && <p className="mt-0.5 text-xs text-muted">{subtitle}</p>}
@@ -150,8 +158,8 @@ export function AppShell({
       {/* ── Mobile bottom navigation (hidden on desktop) ────────────────────── */}
       <nav
         className={cn(
-          "fixed bottom-0 left-0 right-0 z-30 border-t border-line bg-white/95 backdrop-blur-sm",
-          "grid pb-[env(safe-area-inset-bottom,0px)] lg:hidden",
+          "fixed bottom-0 left-0 right-0 z-30 mx-auto max-w-xl border-t border-line bg-white/95 shadow-[0_-8px_30px_rgba(15,23,42,0.08)] backdrop-blur-sm",
+          "grid rounded-t-2xl px-2 pb-[env(safe-area-inset-bottom,0px)] lg:hidden",
           mobileGridClass
         )}
         aria-label="Main navigation"
@@ -166,6 +174,15 @@ export function AppShell({
             <span className="text-[10px] font-semibold leading-none">{link.label}</span>
           </Link>
         ))}
+        {mode === "dashboard" ? (
+          <Link
+            href="/dashboard/websites/new"
+            className="absolute left-1/2 top-0 flex size-14 -translate-x-1/2 -translate-y-1/3 items-center justify-center rounded-full bg-brand-700 text-white shadow-soft transition hover:bg-brand-900"
+            aria-label="Create website"
+          >
+            <Plus size={26} />
+          </Link>
+        ) : null}
       </nav>
     </div>
   );
