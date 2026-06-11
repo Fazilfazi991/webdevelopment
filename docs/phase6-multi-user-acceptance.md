@@ -71,6 +71,28 @@ Latest automated verification:
 | Build | Passed | Run in this verification pass. |
 | Smoke routes | Passed | Public/auth/protected redirect shell routes passed. Set `SMOKE_SITE_ID`, `SMOKE_SUBDOMAIN`, and `SMOKE_INVITATION_TOKEN` for deeper route coverage. |
 
+## Final Manual Verification Attempt - 2026-06-11
+
+The final manual verification request requires real authenticated browser sessions for:
+
+- Self-Service Owner
+- Agency A Owner
+- Agency A Developer
+- Client A Owner
+- Client A Viewer
+- Agency B Owner
+
+This Codex workspace does not contain credentials for those accounts, and passwords or invitation tokens must not be stored in committed files. Because of that, the real-session acceptance matrix above remains **Pending manual session**. No pending row was marked as passed by inference.
+
+What was verified from this workspace:
+
+- Dedicated Supabase Phase 6 and Phase 7 tables are reachable through the configured project.
+- Automated typecheck, lint, production build, and route smoke checks were run during Phase 6 and Phase 7 hardening passes.
+- Protected route smoke checks return visible redirect shells with CSS.
+- The existing documentation preserves the required manual checks for invitation edge cases, client viewer server-action denial, developer assigned-site restriction, cross-agency isolation, cross-client isolation, ownership transfer preserve/remove/cancel, and self-service regression.
+
+Release status: **not approved for Phase 8** until the real accounts above are used and every required Phase 6 row is updated with actual results.
+
 ## Approval Rule
 
 Phase 6 may proceed to Phase 7 only after every manual row above is marked pass using real authenticated browser sessions or equivalent authenticated API sessions. Do not approve Phase 7 from automated schema/build checks alone.
