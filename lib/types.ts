@@ -335,10 +335,22 @@ export type ClientInvitation = {
   invitation_token: string;
   invitation_status: "pending" | "accepted" | "expired" | "cancelled";
   access_role: "client_owner" | "client_editor" | "client_viewer";
+  permissions: Partial<Record<SitePermission, boolean>>;
+  keep_developer_access: boolean;
   expires_at: string;
   invited_by: string;
   accepted_by: string | null;
   accepted_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type AgencySiteClient = {
+  id: string;
+  agency_id: string;
+  client_id: string;
+  site_id: string;
+  created_by: string;
   created_at: string;
   updated_at: string;
 };

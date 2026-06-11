@@ -18,6 +18,17 @@ For each route verify: direct URL load, hard refresh, client-side navigation, br
 | `/sites/[subdomain]/about` | Public | Published page loads or shows not-found copy. |
 | `/sites/[subdomain]/services` | Public | Published page loads or shows not-found copy. |
 | `/sites/[subdomain]/contact` | Public | Published page loads and contact form can submit leads. |
+| `/agency` | Authenticated agency member | Agency overview loads; unauthenticated users redirect to login. |
+| `/agency/clients` | Authenticated agency member | Client list and add-client form load. |
+| `/agency/websites` | Authenticated agency member | Agency website list and client-create flow load. |
+| `/agency/team` | Authenticated agency member | Team member list and invite prep form load. |
+| `/agency/invitations` | Authenticated agency member | Invitation form and records load. |
+| `/client` | Authenticated client access user | Simplified client dashboard loads. |
+| `/client/websites` | Authenticated client access user | Assigned websites load. |
+| `/client/websites/[siteId]` | Authenticated assigned client | Website details load or visible not-found state appears. |
+| `/client/websites/[siteId]/editor` | Authenticated assigned client | Permission-aware editor loads; denied actions stay hidden and blocked. |
+| `/client/websites/[siteId]/preview` | Authenticated assigned client | Preview loads or visible fallback appears. |
+| `/invitations/[token]` | Public/authenticated | Login prompt, invalid, expired, or acceptance state is visible. |
 
 Extra refresh loop:
 
@@ -26,12 +37,14 @@ Extra refresh loop:
 3. Refresh `/dashboard/websites/[siteId]/preview` five times.
 4. Open the preview route in a new tab.
 5. Navigate dashboard -> websites -> editor -> preview -> dashboard with browser back and forward.
-6. Repeat at a mobile-width viewport.
-7. Restart the server and repeat the same route checks.
+6. Navigate agency -> clients -> websites -> invitations -> team with browser back and forward.
+7. Navigate client -> websites -> website detail -> editor -> preview with browser back and forward.
+8. Repeat at a mobile-width viewport.
+9. Restart the server and repeat the same route checks.
 
 Automated smoke check:
 
 ```powershell
 npm.cmd run smoke:routes
-$env:SMOKE_SITE_ID="replace-with-site-id"; $env:SMOKE_SUBDOMAIN="replace-with-subdomain"; npm.cmd run smoke:routes
+$env:SMOKE_SITE_ID="replace-with-site-id"; $env:SMOKE_SUBDOMAIN="replace-with-subdomain"; $env:SMOKE_INVITATION_TOKEN="replace-with-token"; npm.cmd run smoke:routes
 ```

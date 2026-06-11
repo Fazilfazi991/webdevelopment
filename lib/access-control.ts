@@ -72,7 +72,8 @@ export const permissionLabels: Array<{ key: SitePermission; label: string }> = [
   { key: "view_leads", label: "View leads" },
   { key: "update_leads", label: "Update leads" },
   { key: "invite_users", label: "Invite users" },
-  { key: "transfer_ownership", label: "Transfer ownership" }
+  { key: "transfer_ownership", label: "Transfer ownership" },
+  { key: "manage_billing", label: "Manage billing" }
 ];
 
 export function permissionsForRole(role: SiteAccessRole, overrides: Partial<Record<SitePermission, boolean>> = {}) {

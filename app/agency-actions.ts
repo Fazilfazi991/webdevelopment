@@ -13,8 +13,22 @@ function value(formData: FormData, key: string) {
 }
 
 function selectedPermissions(formData: FormData, role: Parameters<typeof permissionsForRole>[0]) {
-  const overrides = Object.fromEntries(permissionLabels.map((item) => [item.key, formData.get(item.key) === "on"]));
-  return permissionsForRole(role, overrides);
+  if (role === "client_owner" || role === "agency_owner" || role === "agency_admin") return permissionsForRole(role);
+  if (role === "client_viewer") {
+    return {
+      preview_site: true,
+      view_leads: formData.get("view_leads") === "on"
+    };
+  }
+  if (role === "client_editor") {
+    return {
+      ...permissionsForRole(role),
+      view_leads: formData.get("view_leads") === "on",
+      update_leads: formData.get("update_leads") === "on"
+    };
+  }
+  const allowed = new Set(Object.keys(permissionsForRole(role)));
+  return Object.fromEntries(permissionLabels.map((item) => [item.key, allowed.has(item.key) && formData.get(item.key) === "on"]));
 }
 
 async function logActivity(supabase: Awaited<ReturnType<typeof requireUser>>["supabase"], siteId: string, userId: string, actionType: string, actionSummary: string, metadata: Record<string, unknown> = {}) {
@@ -108,6 +122,8 @@ export async function createAgencyWebsiteAction(formData: FormData) {
   const input = siteSchema.safeParse({ name: value(formData, "name"), slug: value(formData, "slug"), websiteType: "business_website" });
   const clientId = value(formData, "clientId");
   if (!input.success) redirect(`/agency/websites?error=${encodeURIComponent(input.error.errors[0].message)}`);
+  const { data: client } = await agencyContext.supabase.from("clients").select("id").eq("id", clientId).eq("agency_id", agencyContext.agency.id).maybeSingle();
+  if (!client) redirect("/agency/websites?error=Choose a valid client for this workspace.");
 
   const { data: site, error } = await agencyContext.supabase
     .from("sites")
@@ -127,6 +143,12 @@ export async function createAgencyWebsiteAction(formData: FormData) {
   if (error || !site) redirect("/agency/websites?error=Could not create website.");
 
   await agencyContext.supabase.from("site_ownership").upsert({ site_id: site.id, ownership_type: "agency", owner_agency_id: agencyContext.agency.id }, { onConflict: "site_id" });
+  await agencyContext.supabase.from("agency_site_clients").insert({
+    agency_id: agencyContext.agency.id,
+    client_id: client.id,
+    site_id: site.id,
+    created_by: agencyContext.user.id
+  });
   await agencyContext.supabase.from("site_access_members").upsert({
     site_id: site.id,
     user_id: agencyContext.user.id,
@@ -148,6 +170,7 @@ export async function inviteClientAction(formData: FormData) {
     expiresInDays: value(formData, "expiresInDays") || "14"
   });
   if (!input.success) redirect(`/agency/invitations?error=${encodeURIComponent(input.error.errors[0].message)}`);
+  const permissions = selectedPermissions(formData, input.data.accessRole);
   const token = crypto.randomUUID().replaceAll("-", "") + crypto.randomUUID().replaceAll("-", "");
   const expiresAt = new Date(Date.now() + input.data.expiresInDays * 24 * 60 * 60 * 1000).toISOString();
   const { error } = await supabase.from("client_invitations").insert({
@@ -157,6 +180,8 @@ export async function inviteClientAction(formData: FormData) {
     invitation_token: token,
     invitation_status: "pending",
     access_role: input.data.accessRole,
+    permissions,
+    keep_developer_access: value(formData, "keepDeveloperAccess") !== "false",
     expires_at: expiresAt,
     invited_by: user.id
   });
@@ -209,7 +234,7 @@ export async function acceptInvitationAction(formData: FormData) {
   if (!invitation || invitation.invitation_status !== "pending" || new Date(invitation.expires_at).getTime() < Date.now()) {
     redirect(`/invitations/${token}?error=This invitation is no longer available.`);
   }
-  const permissions = selectedPermissions(formData, invitation.access_role);
+  const permissions = Object.keys(invitation.permissions ?? {}).length ? invitation.permissions : permissionsForRole(invitation.access_role);
   const { error: accessError } = await supabase.from("site_access_members").insert({
     site_id: invitation.site_id,
     user_id: user.id,
@@ -222,4 +247,36 @@ export async function acceptInvitationAction(formData: FormData) {
   await logActivity(supabase, invitation.site_id, user.id, "client_invitation_accepted", "Client invitation accepted");
   await notifyAccessEvent("client_invitation_accepted", invitation.email, { siteId: invitation.site_id });
   redirect("/client");
+}
+
+export async function acceptOwnershipTransferAction(formData: FormData) {
+  const { supabase, user } = await requireUser();
+  const transferId = value(formData, "transferId");
+  const { data: transfer } = await supabase.from("site_ownership_transfers").select("*").eq("id", transferId).eq("status", "pending").maybeSingle();
+  if (!transfer) redirect("/client?error=This transfer is no longer available.");
+
+  const { data: access } = await supabase
+    .from("site_access_members")
+    .select("access_role, permissions")
+    .eq("site_id", transfer.site_id)
+    .eq("user_id", user.id)
+    .maybeSingle();
+  if (!access || access.access_role !== "client_owner") redirect(`/client/websites/${transfer.site_id}?error=Only the client owner can accept this transfer.`);
+
+  const completedAt = new Date().toISOString();
+  const { error: ownershipError } = await supabase
+    .from("site_ownership")
+    .update({
+      ownership_type: "client",
+      owner_client_user_id: user.id,
+      transferred_by: transfer.requested_by,
+      transferred_at: completedAt
+    })
+    .eq("site_id", transfer.site_id);
+  if (ownershipError) redirect(`/client/websites/${transfer.site_id}?error=Could not complete ownership transfer.`);
+
+  await supabase.from("site_ownership_transfers").update({ status: "completed", approved_by: user.id, completed_at: completedAt }).eq("id", transfer.id);
+  await logActivity(supabase, transfer.site_id, user.id, "ownership_transferred", "Ownership transferred to client");
+  await notifyAccessEvent("ownership_transfer_completed", undefined, { siteId: transfer.site_id });
+  redirect(`/client/websites/${transfer.site_id}?message=Ownership transfer completed.`);
 }

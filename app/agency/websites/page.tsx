@@ -6,14 +6,15 @@ import { Card, EmptyState } from "@/components/ui/card";
 import { Field, inputClassName } from "@/components/ui/field";
 import { requireAgencyContext } from "@/lib/access-control";
 import { publicSitePath } from "@/lib/publishing/constants";
-import type { Client, Site } from "@/lib/types";
+import type { AgencySiteClient, Client, Site } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 
 export default async function AgencyWebsitesPage({ searchParams }: { searchParams: { error?: string; message?: string } }) {
   const { supabase, agency } = await requireAgencyContext();
-  const [{ data: clients }, { data: ownership }] = await Promise.all([
+  const [{ data: clients }, { data: ownership }, { data: assignments }] = await Promise.all([
     supabase.from("clients").select("*").eq("agency_id", agency.id).returns<Client[]>(),
-    supabase.from("site_ownership").select("*, sites(*)").eq("owner_agency_id", agency.id)
+    supabase.from("site_ownership").select("*, sites(*)").eq("owner_agency_id", agency.id),
+    supabase.from("agency_site_clients").select("*").eq("agency_id", agency.id).returns<AgencySiteClient[]>()
   ]);
   const sites = (ownership ?? []).map((item) => item.sites).filter(Boolean) as Site[];
   return (
@@ -39,7 +40,9 @@ export default async function AgencyWebsitesPage({ searchParams }: { searchParam
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <h3 className="font-bold text-ink">{site.name}</h3>
-                <p className="mt-1 text-sm text-muted">{site.status} - Updated {formatDate(site.updated_at)}</p>
+                <p className="mt-1 text-sm text-muted">
+                  {clients?.find((client) => client.id === assignments?.find((item) => item.site_id === site.id)?.client_id)?.company_name ?? clients?.find((client) => client.id === assignments?.find((item) => item.site_id === site.id)?.client_id)?.name ?? "No client linked"} - {site.status} - Updated {formatDate(site.updated_at)}
+                </p>
               </div>
               <div className="flex flex-wrap gap-2">
                 <ButtonLink href={`/dashboard/websites/${site.id}/editor`}><Pencil size={16} /> Edit Website</ButtonLink>

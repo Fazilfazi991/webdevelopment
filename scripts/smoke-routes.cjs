@@ -1,14 +1,26 @@
 const baseUrl = process.env.SMOKE_BASE_URL || "http://127.0.0.1:3000";
 const siteId = process.env.SMOKE_SITE_ID;
 const subdomain = process.env.SMOKE_SUBDOMAIN;
+const invitationToken = process.env.SMOKE_INVITATION_TOKEN;
 
 const routes = [
   { path: "/", expectCss: true },
   { path: "/auth/login", expectCss: true },
   { path: "/dashboard", allowRedirect: true, expectCss: true },
   { path: "/dashboard/websites", allowRedirect: true, expectCss: true },
+  { path: "/agency", allowRedirect: true, expectCss: true },
+  { path: "/agency/clients", allowRedirect: true, expectCss: true },
+  { path: "/agency/websites", allowRedirect: true, expectCss: true },
+  { path: "/agency/team", allowRedirect: true, expectCss: true },
+  { path: "/agency/invitations", allowRedirect: true, expectCss: true },
+  { path: "/client", allowRedirect: true, expectCss: true },
+  { path: "/client/websites", allowRedirect: true, expectCss: true },
   siteId ? { path: `/dashboard/websites/${siteId}/preview`, allowRedirect: true, expectCss: true } : null,
+  siteId ? { path: `/client/websites/${siteId}`, allowRedirect: true, allowNotFound: true, expectCss: true } : null,
+  siteId ? { path: `/client/websites/${siteId}/editor`, allowRedirect: true, allowNotFound: true, expectCss: true } : null,
+  siteId ? { path: `/client/websites/${siteId}/preview`, allowRedirect: true, allowNotFound: true, expectCss: true } : null,
   subdomain ? { path: `/sites/${subdomain}`, allowNotFound: true, expectCss: true } : null
+  , invitationToken ? { path: `/invitations/${invitationToken}`, allowRedirect: true, allowNotFound: true, expectCss: true } : null
 ].filter(Boolean);
 
 function hasCssReference(html) {
@@ -54,7 +66,9 @@ async function checkRoute(route) {
   for (const route of routes) results.push(await checkRoute(route));
   for (const result of results) console.log(`${result.status} ${result.path} ${result.note}`);
   if (!siteId) console.log("SKIP /dashboard/websites/[siteId]/preview: set SMOKE_SITE_ID to include it.");
+  if (!siteId) console.log("SKIP /client/websites/[siteId] routes: set SMOKE_SITE_ID to include them.");
   if (!subdomain) console.log("SKIP /sites/[subdomain]: set SMOKE_SUBDOMAIN to include it.");
+  if (!invitationToken) console.log("SKIP /invitations/[token]: set SMOKE_INVITATION_TOKEN to include it.");
 })().catch((error) => {
   console.error(error.message);
   process.exit(1);
