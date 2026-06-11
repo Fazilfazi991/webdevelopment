@@ -1,6 +1,7 @@
 import { AlertTriangle } from "lucide-react";
+import type { ReactNode } from "react";
 import { emptySettingsSchema, getSectionSchema } from "@/lib/site-renderer/section-schemas";
-import type { TemplateSectionRecord } from "@/lib/site-renderer/template-types";
+import type { SectionComponentProps, TemplateSectionRecord } from "@/lib/site-renderer/template-types";
 import { sectionRegistry } from "@/components/site-renderer/section-registry";
 
 function getVariantKey(section: TemplateSectionRecord) {
@@ -43,7 +44,17 @@ export function PageRenderer({ pageSlug, sections }: { pageSlug: string; section
           return <SectionFallback key={section.id} title="Section content unavailable" detail={`The content for "${key}" needs a schema update.`} />;
         }
 
-        return <Component key={section.id} content={content.data} settings={settings.success ? settings.data : {}} pageSlug={pageSlug} />;
+        try {
+          const rendered = (Component as (props: SectionComponentProps) => ReactNode)({
+            content: content.data,
+            settings: settings.success ? settings.data : {},
+            pageSlug
+          });
+          return <div key={section.id}>{rendered}</div>;
+        } catch (error) {
+          console.error("Section renderer failed", { sectionId: section.id, key, error });
+          return <SectionFallback key={section.id} title="Section could not be displayed" detail="This section has been skipped so the rest of the preview can load." />;
+        }
       })}
     </>
   );

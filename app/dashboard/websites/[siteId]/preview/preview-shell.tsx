@@ -25,9 +25,25 @@ export async function WebsitePreviewShell({
   pageSlug?: string;
   device?: string;
 }) {
-  const { site, supabase } = await requireSiteSetup(siteId);
-  const editorContext = await loadEditorContext(supabase, site.id, false);
-  const result = applyEditorMerges(editorContext);
+  let setup: Awaited<ReturnType<typeof requireSiteSetup>>;
+  let result: ReturnType<typeof applyEditorMerges>;
+
+  try {
+    setup = await requireSiteSetup(siteId);
+    const editorContext = await loadEditorContext(setup.supabase, setup.site.id, false);
+    result = applyEditorMerges(editorContext);
+  } catch (error) {
+    console.error("Preview load failed", { siteId, pageSlug, error });
+    return (
+      <PreviewNotice
+        title="We could not load this preview"
+        description="Please try again. If this keeps happening, return to the dashboard and reopen the website."
+        action={<ButtonLink href="/dashboard/websites">Back to dashboard</ButtonLink>}
+      />
+    );
+  }
+
+  const { site } = setup;
 
   if (result.status === "no-template") {
     return (
