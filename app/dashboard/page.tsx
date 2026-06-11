@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { Bell, ChevronRight, CreditCard, Crown, Globe2, Headphones, LayoutGrid, MoreVertical, Plus, Settings, UserRound } from "lucide-react";
+import { Bell, ChevronRight, CreditCard, Crown, Edit3, Globe2, Headphones, MoreVertical, Plus, Trash2, UserRound } from "lucide-react";
+import { deleteSiteAction } from "@/app/actions";
 import { StatusBadge } from "@/components/status-badge";
 import { ButtonLink } from "@/components/ui/button";
 import { requireDashboardContext } from "@/lib/data";
-import { publicSitePath } from "@/lib/publishing/constants";
 import { formatDate } from "@/lib/utils";
 
 function websiteImage(index: number) {
@@ -27,7 +27,7 @@ export default async function DashboardPage() {
   const visibleSites = sortedSites.slice(0, 3);
 
   return (
-    <div className="mx-auto grid w-full max-w-6xl gap-6 lg:grid-cols-[minmax(0,1.15fr)_360px] lg:items-start">
+    <div className="mx-auto grid w-full max-w-4xl gap-6">
       <section className="grid gap-6">
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -64,9 +64,6 @@ export default async function DashboardPage() {
           {visibleSites.length ? (
             <div className="grid gap-3">
               {visibleSites.map((site, index) => {
-                const isLive = site.publication_status === "published";
-                const href = isLive && site.primary_subdomain ? publicSitePath(site.primary_subdomain) : `/dashboard/websites/${site.id}`;
-
                 return (
                   <article key={site.id} className="grid grid-cols-[116px_1fr_auto] items-center gap-3 rounded-2xl border border-line bg-white p-2.5 shadow-soft">
                     <Link
@@ -81,9 +78,24 @@ export default async function DashboardPage() {
                       <p className="mt-1 truncate text-xs text-muted">Updated {formatDate(site.updated_at)}</p>
                     </Link>
                     <div className="flex h-full flex-col items-end justify-between gap-2">
-                      <Link href={href} className="inline-flex size-8 items-center justify-center rounded-lg text-muted hover:bg-brand-50 hover:text-brand-700" aria-label="Open website actions">
-                        <MoreVertical size={18} />
-                      </Link>
+                      <details className="group relative">
+                        <summary className="inline-flex size-8 cursor-pointer list-none items-center justify-center rounded-lg text-muted transition hover:bg-brand-50 hover:text-brand-700 marker:hidden" aria-label="Open website actions">
+                          <MoreVertical size={18} />
+                        </summary>
+                        <div className="absolute right-0 top-10 z-20 grid min-w-[156px] overflow-hidden rounded-xl border border-line bg-white p-1 shadow-soft">
+                          <Link href={`/dashboard/websites/${site.id}/editor`} className="inline-flex min-h-10 items-center gap-2 rounded-lg px-3 text-sm font-semibold text-ink hover:bg-brand-50">
+                            <Edit3 size={15} />
+                            Edit
+                          </Link>
+                          <form action={deleteSiteAction}>
+                            <input type="hidden" name="siteId" value={site.id} />
+                            <button type="submit" className="inline-flex min-h-10 w-full items-center gap-2 rounded-lg px-3 text-left text-sm font-semibold text-red-700 hover:bg-red-50">
+                              <Trash2 size={15} />
+                              Delete
+                            </button>
+                          </form>
+                        </div>
+                      </details>
                       <StatusBadge status={site.status} />
                     </div>
                   </article>
@@ -132,30 +144,6 @@ export default async function DashboardPage() {
         </section>
       </section>
 
-      <aside className="hidden rounded-3xl border border-line bg-white p-5 shadow-soft lg:grid lg:gap-4">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-widest text-brand-700">Dashboard focus</p>
-          <h2 className="mt-2 text-xl font-bold text-ink">Simple. Clean. Built for action.</h2>
-          <p className="mt-2 text-sm leading-6 text-muted">The main dashboard stays lightweight: create websites, choose a site, open account tools, and continue.</p>
-        </div>
-        {[
-          { title: "Create New Website", body: "Primary CTA, prominent and easy to access.", icon: Plus },
-          { title: "My Websites", body: "A compact list with status and last updated.", icon: LayoutGrid },
-          { title: "Plans", body: "A small upgrade nudge without taking over the page.", icon: Crown },
-          { title: "Quick Access", body: "Shortcuts for account, domains, billing, and support.", icon: Settings },
-          { title: "Notifications", body: "Recent updates stay one tap away.", icon: Bell }
-        ].map((item) => (
-          <div key={item.title} className="grid grid-cols-[44px_1fr] gap-3 border-t border-line pt-4">
-            <span className="flex size-11 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
-              <item.icon size={20} />
-            </span>
-            <span>
-              <span className="block text-sm font-bold text-ink">{item.title}</span>
-              <span className="mt-0.5 block text-xs leading-5 text-muted">{item.body}</span>
-            </span>
-          </div>
-        ))}
-      </aside>
     </div>
   );
 }
