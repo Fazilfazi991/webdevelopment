@@ -5,7 +5,7 @@ export default async function WebsiteEditorTabPage({
   searchParams
 }: {
   params: { siteId: string; tab: string };
-  searchParams: { message?: string; error?: string; device?: string };
+  searchParams: { message?: string; error?: string; device?: string; page?: string; section?: string };
 }) {
   return <EditorShell siteId={params.siteId} activeTab={params.tab} searchParams={searchParams} />;
 }

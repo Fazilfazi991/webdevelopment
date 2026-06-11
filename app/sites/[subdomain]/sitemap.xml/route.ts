@@ -1,6 +1,8 @@
 import { publicSiteUrl } from "@/lib/publishing/constants";
 import { loadPublicSite } from "@/lib/publishing/public-loader";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(_: Request, { params }: { params: { subdomain: string } }) {
   const { site, preview } = await loadPublicSite(params.subdomain);
   const urls = preview.pages.map((page) => {

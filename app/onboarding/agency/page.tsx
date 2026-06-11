@@ -7,6 +7,8 @@ import { Field, inputClassName } from "@/components/ui/field";
 import { countries } from "@/lib/constants";
 import { getCurrentUser } from "@/lib/data";
 
+export const dynamic = "force-dynamic";
+
 export default async function AgencyOnboardingPage({ searchParams }: { searchParams: { error?: string } }) {
   const { user } = await getCurrentUser();
   if (!user) redirect("/auth/login");

@@ -1,6 +1,8 @@
 import { AppShell } from "@/components/app-shell";
 import { requireClientSites } from "@/lib/access-control";
 
+export const dynamic = "force-dynamic";
+
 export default async function ClientLayout({ children }: { children: React.ReactNode }) {
   await requireClientSites();
   return (

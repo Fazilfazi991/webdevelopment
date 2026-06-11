@@ -5,6 +5,8 @@ function csvCell(value: unknown) {
   return `"${String(value ?? "").replaceAll('"', '""')}"`;
 }
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: Request) {
   const { supabase, organization } = await requireDashboardContext();
   const { searchParams } = new URL(request.url);

@@ -149,7 +149,8 @@ export async function prepareRecommendedDesignAction(formData: FormData) {
   const { supabase, site, user } = await requireSiteSetup(input.data.siteId);
   const recommendation = await getRecommendedTemplateForCategory(supabase, input.data.categoryId);
   if (!recommendation?.category || !recommendation.template) {
-    redirect(`/dashboard/websites/${site.id}/setup/templates?category=${input.data.categoryId}&error=No recommended design is available yet.`);
+    // No specific recommendation found — send user to browse all available designs
+    redirect(`/dashboard/websites/${site.id}/setup/templates${input.data.categoryId ? `?category=${input.data.categoryId}` : ""}`);
   }
 
   const { category, template } = recommendation;

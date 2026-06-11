@@ -1,6 +1,8 @@
 import { SiteRenderer } from "@/components/site-renderer/site-renderer";
 import { loadPublicSite, publicSiteMetadata } from "@/lib/publishing/public-loader";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({ params }: { params: { subdomain: string; pageSlug: string } }) {
   const { site } = await loadPublicSite(params.subdomain, params.pageSlug);
   return publicSiteMetadata(site);
