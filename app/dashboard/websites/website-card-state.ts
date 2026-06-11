@@ -136,16 +136,16 @@ export function getWebsiteCardState({
   if (site.setup_step === "template_selected") {
     return {
       state: "ready_to_review",
-      badge: "Website ready for review",
-      title: "Website ready for review",
-      description: "We prepared a design that matches your business.",
-      primaryAction: "preview",
+      badge: "Ready to publish",
+      title: "Your website is ready",
+      description: "We prepared a design that matches your business. You can publish now or make changes anytime.",
+      primaryAction: "edit",
       showPublicUrl: false,
-      showPublishAction: false,
+      showPublishAction: true,
       showPreviewAction: true,
       showLiveAction: false,
       showChangeDesign: true,
-      publishLabel: null,
+      publishLabel: "Publish Website",
       previewLabel: "Preview Website"
     };
   }
