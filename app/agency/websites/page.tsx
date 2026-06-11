@@ -1,20 +1,21 @@
 import { ExternalLink, Pencil } from "lucide-react";
-import { createAgencyWebsiteAction, requestOwnershipTransferAction } from "@/app/agency-actions";
+import { cancelOwnershipTransferAction, createAgencyWebsiteAction, requestOwnershipTransferAction } from "@/app/agency-actions";
 import { StatusMessage } from "@/app/auth/status-message";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Card, EmptyState } from "@/components/ui/card";
 import { Field, inputClassName } from "@/components/ui/field";
 import { requireAgencyContext } from "@/lib/access-control";
 import { publicSitePath } from "@/lib/publishing/constants";
-import type { AgencySiteClient, Client, Site } from "@/lib/types";
+import type { AgencySiteClient, Client, Site, SiteOwnershipTransfer } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 
 export default async function AgencyWebsitesPage({ searchParams }: { searchParams: { error?: string; message?: string } }) {
   const { supabase, agency } = await requireAgencyContext();
-  const [{ data: clients }, { data: ownership }, { data: assignments }] = await Promise.all([
+  const [{ data: clients }, { data: ownership }, { data: assignments }, { data: transfers }] = await Promise.all([
     supabase.from("clients").select("*").eq("agency_id", agency.id).returns<Client[]>(),
     supabase.from("site_ownership").select("*, sites(*)").eq("owner_agency_id", agency.id),
-    supabase.from("agency_site_clients").select("*").eq("agency_id", agency.id).returns<AgencySiteClient[]>()
+    supabase.from("agency_site_clients").select("*").eq("agency_id", agency.id).returns<AgencySiteClient[]>(),
+    supabase.from("site_ownership_transfers").select("*").eq("status", "pending").returns<SiteOwnershipTransfer[]>()
   ]);
   const sites = (ownership ?? []).map((item) => item.sites).filter(Boolean) as Site[];
   return (
@@ -50,11 +51,25 @@ export default async function AgencyWebsitesPage({ searchParams }: { searchParam
                 {site.primary_subdomain ? <ButtonLink href={publicSitePath(site.primary_subdomain)} variant="secondary"><ExternalLink size={16} /> Live</ButtonLink> : null}
               </div>
             </div>
-            <form action={requestOwnershipTransferAction} className="mt-4 flex flex-wrap gap-2 border-t border-line pt-4">
-              <input type="hidden" name="siteId" value={site.id} />
-              <input type="hidden" name="preserveDeveloperAccess" value="true" />
-              <Button type="submit" variant="secondary">Request ownership transfer</Button>
-            </form>
+            {transfers?.find((transfer) => transfer.site_id === site.id) ? (
+              <form action={cancelOwnershipTransferAction} className="mt-4 flex flex-wrap gap-2 border-t border-line pt-4">
+                <input type="hidden" name="siteId" value={site.id} />
+                <input type="hidden" name="transferId" value={transfers.find((transfer) => transfer.site_id === site.id)?.id} />
+                <Button type="submit" variant="secondary">Cancel pending transfer</Button>
+              </form>
+            ) : (
+              <form action={requestOwnershipTransferAction} className="mt-4 grid gap-3 border-t border-line pt-4 sm:grid-cols-[1fr_auto]">
+                <input type="hidden" name="siteId" value={site.id} />
+                <label className="grid gap-1 text-sm font-semibold text-ink">
+                  Developer access after handover
+                  <select className={inputClassName} name="preserveDeveloperAccess" defaultValue="true">
+                    <option value="true">Keep developer access</option>
+                    <option value="false">Remove agency/developer access</option>
+                  </select>
+                </label>
+                <Button type="submit" variant="secondary" className="self-end">Request ownership transfer</Button>
+              </form>
+            )}
           </Card>
         )) : <EmptyState title="No agency websites yet" description="Create a website for a client to start the guided setup." />}
       </div>

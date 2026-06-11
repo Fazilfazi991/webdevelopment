@@ -221,10 +221,26 @@ export async function requestOwnershipTransferAction(formData: FormData) {
     to_ownership_type: "client",
     from_owner_reference: "agency",
     to_owner_reference: input.data.toUserId ?? "pending-client",
+    preserve_developer_access: input.data.preserveDeveloperAccess === "true",
     requested_by: user.id
   });
   await logActivity(supabase, input.data.siteId, user.id, "ownership_transfer_requested", "Ownership transfer requested", { preserveDeveloperAccess: input.data.preserveDeveloperAccess });
   redirect("/agency/websites?message=Ownership transfer requested.");
+}
+
+export async function cancelOwnershipTransferAction(formData: FormData) {
+  const { supabase, user } = await requireAgencyContext();
+  const transferId = value(formData, "transferId");
+  const siteId = value(formData, "siteId");
+  const { error } = await supabase
+    .from("site_ownership_transfers")
+    .update({ status: "cancelled", approved_by: user.id })
+    .eq("id", transferId)
+    .eq("site_id", siteId)
+    .eq("status", "pending");
+  if (error) redirect("/agency/websites?error=Could not cancel transfer.");
+  await logActivity(supabase, siteId, user.id, "ownership_transfer_cancelled", "Ownership transfer cancelled");
+  redirect("/agency/websites?message=Ownership transfer cancelled.");
 }
 
 export async function acceptInvitationAction(formData: FormData) {
@@ -276,6 +292,9 @@ export async function acceptOwnershipTransferAction(formData: FormData) {
   if (ownershipError) redirect(`/client/websites/${transfer.site_id}?error=Could not complete ownership transfer.`);
 
   await supabase.from("site_ownership_transfers").update({ status: "completed", approved_by: user.id, completed_at: completedAt }).eq("id", transfer.id);
+  if (transfer.preserve_developer_access === false) {
+    await supabase.from("site_access_members").delete().eq("site_id", transfer.site_id).in("access_role", ["agency_owner", "agency_admin", "developer"]);
+  }
   await logActivity(supabase, transfer.site_id, user.id, "ownership_transferred", "Ownership transferred to client");
   await notifyAccessEvent("ownership_transfer_completed", undefined, { siteId: transfer.site_id });
   redirect(`/client/websites/${transfer.site_id}?message=Ownership transfer completed.`);

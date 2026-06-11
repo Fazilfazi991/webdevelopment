@@ -376,6 +376,7 @@ export type SiteOwnershipTransfer = {
   from_owner_reference: string | null;
   to_owner_reference: string | null;
   status: "pending" | "approved" | "cancelled" | "completed";
+  preserve_developer_access: boolean;
   requested_by: string;
   approved_by: string | null;
   requested_at: string;
