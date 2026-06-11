@@ -139,3 +139,36 @@ export async function selectTemplateAction(formData: FormData) {
   revalidatePath("/dashboard");
   redirect(setupPath(site.id, "template_selected"));
 }
+
+export async function prepareRecommendedDesignAction(formData: FormData) {
+  const siteId = str(formData, "siteId");
+  const categoryId = str(formData, "categoryId");
+  const input = categoryStepSchema.safeParse({ siteId, categoryId });
+  if (!input.success) redirect("/dashboard/websites?error=Could not prepare the recommended design.");
+
+  const { supabase, site, user } = await requireSiteSetup(input.data.siteId);
+  const recommendation = await getRecommendedTemplateForCategory(supabase, input.data.categoryId);
+  if (!recommendation?.category || !recommendation.template) {
+    redirect(`/dashboard/websites/${site.id}/setup/templates?category=${input.data.categoryId}&error=No recommended design is available yet.`);
+  }
+
+  const { category, template } = recommendation;
+  const { error } = await supabase.from("site_template_selections").upsert(
+    {
+      site_id: site.id,
+      industry_id: category.industry_id,
+      business_category_id: category.id,
+      template_id: template.id,
+      selected_by: user.id
+    },
+    { onConflict: "site_id" }
+  );
+  if (error) redirect("/dashboard/websites?error=Could not prepare the recommended design.");
+
+  await supabase
+    .from("sites")
+    .update({ setup_step: "template_selected", setup_completed_at: new Date().toISOString() })
+    .eq("id", site.id);
+  revalidatePath("/dashboard/websites");
+  redirect(setupPath(site.id, "template_selected"));
+}

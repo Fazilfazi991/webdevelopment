@@ -24,6 +24,7 @@ const setupProgress = read("components/setup/setup-progress.tsx");
 const newWebsitePage = read("app/dashboard/websites/new/page.tsx");
 const newWebsiteForm = read("app/dashboard/websites/new/new-website-form.tsx");
 const dashboardWebsites = read("app/dashboard/websites/page.tsx");
+const websiteCardState = read("app/dashboard/websites/website-card-state.ts");
 const publicLoader = read("lib/publishing/public-loader.ts");
 const migration = read("supabase/migrations/014_site_media_slot_usage_types.sql");
 const recommendationMigration = read("supabase/migrations/015_default_template_recommendations.sql");
@@ -48,9 +49,22 @@ assert(completePage.includes("Choose another design"), "Completion page should k
 assert(setupProgress.includes("Business Basics") && setupProgress.includes("Website Ready"), "Setup progress should use customer-facing labels.");
 assert(newWebsitePage.includes("Tell us about your business"), "Create website page should use business-basics copy.");
 assert(newWebsiteForm.includes("suggestedSlug"), "Create website form should suggest slug from business name.");
-assert(dashboardWebsites.includes("Change Template"), "Dashboard cards should expose optional template switching.");
-assert(dashboardWebsites.includes("Republish"), "Published dashboard cards should support republish.");
 assert(recommendationMigration.includes("default_template_id"), "Default template recommendation migration should add mapping columns.");
+assert(websiteCardState.includes("getWebsiteCardState"), "Dashboard website cards should use a derived status helper.");
+[
+  "setup_incomplete",
+  "design_required",
+  "ready_to_review",
+  "ready_to_publish",
+  "published_synced",
+  "published_with_changes",
+  "unpublished",
+  "suspended"
+].forEach((state) => assert(websiteCardState.includes(state), `Website card helper missing ${state}.`));
+assert(dashboardWebsites.includes("Prepare Recommended Design"), "Legacy category-only sites should recover by preparing a recommended design.");
+assert(websiteCardState.includes("Publish Updates"), "Published changed sites should use Publish Updates copy.");
+assert(!dashboardWebsites.includes("Republish"), "Dashboard cards should not expose Republish as always-visible customer copy.");
+assert(!dashboardWebsites.includes("Change Template"), "Dashboard cards should use Change Design, not Change Template.");
 assert(publicLoader.includes("refreshSignedMediaUrls"), "Published preview should refresh signed URLs from snapshot storage paths.");
 
 [
