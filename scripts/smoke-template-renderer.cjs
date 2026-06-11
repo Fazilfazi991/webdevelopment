@@ -18,8 +18,15 @@ const slots = read("lib/site-renderer/media-slots.ts");
 const previewShell = read("app/dashboard/websites/[siteId]/preview/preview-shell.tsx");
 const setupPreview = read("app/dashboard/websites/[siteId]/setup/templates/[templateId]/page.tsx");
 const templatesPage = read("app/dashboard/websites/[siteId]/setup/templates/page.tsx");
+const setupActions = read("app/setup-actions.ts");
+const completePage = read("app/dashboard/websites/[siteId]/setup/complete/page.tsx");
+const setupProgress = read("components/setup/setup-progress.tsx");
+const newWebsitePage = read("app/dashboard/websites/new/page.tsx");
+const newWebsiteForm = read("app/dashboard/websites/new/new-website-form.tsx");
+const dashboardWebsites = read("app/dashboard/websites/page.tsx");
 const publicLoader = read("lib/publishing/public-loader.ts");
 const migration = read("supabase/migrations/014_site_media_slot_usage_types.sql");
+const recommendationMigration = read("supabase/migrations/015_default_template_recommendations.sql");
 
 assert(shared.includes("auto-fit"), "Renderer sections should use intrinsic auto-fit grids.");
 assert(!shared.includes("break-all"), "Renderer text must not use break-all.");
@@ -33,6 +40,17 @@ assert(setupPreview.includes("Try the live preview"), "Template detail page shou
 assert(setupPreview.includes("Open Full Live Preview"), "Template detail page should expose full live preview actions.");
 assert(templatesPage.includes("Best for"), "Template marketplace card should show best-for industries.");
 assert(templatesPage.includes("Mobile-ready"), "Template marketplace card should show mobile responsive badge.");
+assert(setupActions.includes("getRecommendedTemplateForCategory"), "Category selection should auto-load a recommended template.");
+assert(setupActions.includes("template_selected"), "Category selection should route to website-ready state when a recommendation exists.");
+assert(completePage.includes("Your website is ready"), "Completion page should be a website-ready preview.");
+assert(completePage.includes("Continue with this design"), "Completion page should lead with continue CTA.");
+assert(completePage.includes("Choose another design"), "Completion page should keep template browsing optional.");
+assert(setupProgress.includes("Business Basics") && setupProgress.includes("Website Ready"), "Setup progress should use customer-facing labels.");
+assert(newWebsitePage.includes("Tell us about your business"), "Create website page should use business-basics copy.");
+assert(newWebsiteForm.includes("suggestedSlug"), "Create website form should suggest slug from business name.");
+assert(dashboardWebsites.includes("Change Template"), "Dashboard cards should expose optional template switching.");
+assert(dashboardWebsites.includes("Republish"), "Published dashboard cards should support republish.");
+assert(recommendationMigration.includes("default_template_id"), "Default template recommendation migration should add mapping columns.");
 assert(publicLoader.includes("refreshSignedMediaUrls"), "Published preview should refresh signed URLs from snapshot storage paths.");
 
 [

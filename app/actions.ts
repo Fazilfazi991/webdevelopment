@@ -67,10 +67,15 @@ export async function createSiteAction(formData: FormData) {
   const input = siteSchema.safeParse({
     name: value(formData, "name"),
     slug: value(formData, "slug"),
-    websiteType: value(formData, "websiteType")
+    websiteType: value(formData, "websiteType"),
+    countryCode: value(formData, "countryCode") || organization.country_code,
+    defaultLanguage: value(formData, "defaultLanguage") || "en"
   });
 
   if (!input.success) redirect(`/dashboard/websites/new?error=${encodeURIComponent(input.error.errors[0].message)}`);
+  if (!isAllowed(countries, input.data.countryCode) || !isAllowed(languages, input.data.defaultLanguage)) {
+    redirect("/dashboard/websites/new?error=Choose supported country and language settings.");
+  }
 
   const { data: existing } = await supabase
     .from("sites")
@@ -88,8 +93,8 @@ export async function createSiteAction(formData: FormData) {
       slug: input.data.slug,
       website_type: input.data.websiteType,
       status: "draft",
-      country_code: organization.country_code,
-      default_language: "en",
+      country_code: input.data.countryCode,
+      default_language: input.data.defaultLanguage,
       setup_step: "website_type",
       created_by: user.id
     })

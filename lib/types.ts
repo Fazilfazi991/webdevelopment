@@ -59,6 +59,7 @@ export type Industry = {
   slug: string;
   description: string | null;
   icon_name: string | null;
+  default_template_id?: string | null;
   display_order: number;
   is_active: boolean;
   created_at: string;
@@ -72,6 +73,7 @@ export type BusinessCategory = {
   slug: string;
   description: string | null;
   icon_name: string | null;
+  default_template_id?: string | null;
   display_order: number;
   is_active: boolean;
   created_at: string;

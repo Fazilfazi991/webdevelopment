@@ -1,5 +1,5 @@
-import { ExternalLink, Globe2, MoreHorizontal, Pencil, Plus } from "lucide-react";
-import { publishWebsiteAction, unpublishWebsiteAction } from "@/app/publishing-actions";
+import { ExternalLink, Eye, Globe2, Palette, Pencil, Plus } from "lucide-react";
+import { publishWebsiteAction } from "@/app/publishing-actions";
 import { StatusBadge } from "@/components/status-badge";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Card, EmptyState } from "@/components/ui/card";
@@ -90,13 +90,14 @@ export default async function WebsitesPage() {
                     Template: <span className="font-semibold text-ink">{template?.name ?? "Not selected"}</span>
                   </p>
                 </div>
-                <div className="mt-5 grid gap-2 min-[460px]:grid-cols-[1fr_1fr_auto]">
+                <div className="mt-5 grid gap-2 min-[460px]:grid-cols-2">
                   <ButtonLink href={setupPath(site.id, site.setup_step)} variant="secondary">
                     <Pencil size={16} />
                     {template ? "Edit Website" : "Continue Setup"}
                   </ButtonLink>
                   {template ? (
                     <ButtonLink href={`/dashboard/websites/${site.id}/preview`} variant="ghost">
+                      <Eye size={16} />
                       Preview Website
                     </ButtonLink>
                   ) : (
@@ -104,21 +105,32 @@ export default async function WebsitesPage() {
                       Continue Setup
                     </ButtonLink>
                   )}
-                  <ButtonLink href={setupPath(site.id, site.setup_step)} variant="ghost" aria-label="Settings menu">
-                    <MoreHorizontal size={18} />
-                  </ButtonLink>
+                  {selection?.business_category_id ? (
+                    <ButtonLink href={`/dashboard/websites/${site.id}/setup/templates?category=${selection.business_category_id}`} variant="ghost">
+                      <Palette size={16} />
+                      Change Template
+                    </ButtonLink>
+                  ) : null}
+                  {site.primary_subdomain ? (
+                    <ButtonLink href={publicSitePath(site.primary_subdomain)} variant="ghost">
+                      <ExternalLink size={16} />
+                      View Live Website
+                    </ButtonLink>
+                  ) : null}
                 </div>
-                <form action={site.publication_status === "published" ? unpublishWebsiteAction : publishWebsiteAction} className="mt-4 grid gap-2 border-t border-line pt-4">
+                <form action={publishWebsiteAction} className="mt-4 grid gap-2 border-t border-line pt-4">
                   <input type="hidden" name="siteId" value={site.id} />
-                  {site.publication_status === "published" ? null : (
+                  {site.publication_status === "published" ? (
+                    <input type="hidden" name="subdomain" value={site.primary_subdomain ?? site.slug} />
+                  ) : (
                     <label className="grid gap-1 text-sm font-semibold text-ink">
                       Platform subdomain
                       <input className={inputClassName} name="subdomain" defaultValue={site.primary_subdomain ?? site.slug} pattern="[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?" />
                     </label>
                   )}
-                  <Button type="submit" variant={site.publication_status === "published" ? "secondary" : "primary"}>
+                  <Button type="submit" variant="primary">
                     <Globe2 size={16} />
-                    {site.publication_status === "published" ? "Unpublish" : "Publish"}
+                    {site.publication_status === "published" ? "Republish" : "Publish Website"}
                   </Button>
                 </form>
               </Card>

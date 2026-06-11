@@ -148,3 +148,50 @@ export async function getTemplateById(supabase: Awaited<ReturnType<typeof requir
   const pages = template ? await getTemplatePages(supabase, [template.id]) : [];
   return { template, pages };
 }
+
+export async function getRecommendedTemplateForCategory(
+  supabase: Awaited<ReturnType<typeof requireDashboardContext>>["supabase"],
+  categoryId: string
+) {
+  const { data: category } = await supabase
+    .from("business_categories")
+    .select("id, industry_id, default_template_id")
+    .eq("id", categoryId)
+    .eq("is_active", true)
+    .maybeSingle<{ id: string; industry_id: string; default_template_id: string | null }>();
+
+  if (!category) return null;
+
+  if (category.default_template_id) {
+    const { data: template } = await supabase
+      .from("templates")
+      .select("*")
+      .eq("id", category.default_template_id)
+      .eq("is_active", true)
+      .maybeSingle<Template>();
+    if (template) return { category, template };
+  }
+
+  const { data: industry } = await supabase
+    .from("industries")
+    .select("id, default_template_id")
+    .eq("id", category.industry_id)
+    .eq("is_active", true)
+    .maybeSingle<{ id: string; default_template_id: string | null }>();
+
+  if (industry?.default_template_id) {
+    const { data: template } = await supabase
+      .from("templates")
+      .select("*")
+      .eq("id", industry.default_template_id)
+      .eq("is_active", true)
+      .maybeSingle<Template>();
+    if (template) return { category, template };
+  }
+
+  const { templates } = await getTemplatesForCategory(supabase, category.id, { featuredOnly: true });
+  if (templates[0]) return { category, template: templates[0] };
+
+  const fallback = await getTemplatesForCategory(supabase, category.id);
+  return fallback.templates[0] ? { category, template: fallback.templates[0] } : { category, template: null };
+}

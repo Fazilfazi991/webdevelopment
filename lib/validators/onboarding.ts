@@ -22,7 +22,9 @@ export const siteSchema = z.object({
     .min(2, "Enter a slug")
     .max(64)
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Use lowercase letters, numbers, and hyphens"),
-  websiteType: z.literal("business_website")
+  websiteType: z.literal("business_website"),
+  countryCode: z.string().min(2),
+  defaultLanguage: z.string().min(2)
 });
 
 export const profileSchema = z.object({

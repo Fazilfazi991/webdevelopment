@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireSiteSetup, setupPath } from "@/lib/setup";
+import { getRecommendedTemplateForCategory, requireSiteSetup, setupPath } from "@/lib/setup";
 import {
   categoryStepSchema,
   industryStepSchema,
@@ -68,31 +68,34 @@ export async function chooseCategoryAction(formData: FormData) {
   });
   if (!input.success) redirect("/dashboard/websites?error=Choose a business category.");
 
-  const { supabase, site, selection, user } = await requireSiteSetup(input.data.siteId);
-  const { data: category } = await supabase
-    .from("business_categories")
-    .select("id, industry_id")
-    .eq("id", input.data.categoryId)
-    .eq("is_active", true)
-    .maybeSingle<{ id: string; industry_id: string }>();
-  if (!category) redirect(`${setupPath(site.id, "business_category")}?error=Choose an active business category.`);
+  const { supabase, site, user } = await requireSiteSetup(input.data.siteId);
+  const recommendation = await getRecommendedTemplateForCategory(supabase, input.data.categoryId);
+  if (!recommendation?.category) redirect(`${setupPath(site.id, "business_category")}?error=Choose an active business category.`);
+  const { category, template } = recommendation;
 
   await supabase.from("site_template_selections").upsert(
     {
       site_id: site.id,
       industry_id: category.industry_id,
       business_category_id: category.id,
-      template_id: selection?.business_category_id === category.id ? selection?.template_id : null,
+      template_id: template?.id ?? null,
       selected_by: user.id
     },
     { onConflict: "site_id" }
   );
 
-  const { error } = await supabase.from("sites").update({ setup_step: "template" }).eq("id", site.id);
+  const nextStep = template ? "template_selected" : "template";
+  const { error } = await supabase
+    .from("sites")
+    .update({
+      setup_step: nextStep,
+      setup_completed_at: template ? new Date().toISOString() : null
+    })
+    .eq("id", site.id);
   if (error) redirect(`${setupPath(site.id, "business_category")}?error=Could not save the category.`);
 
   revalidatePath("/dashboard");
-  redirect(setupPath(site.id, "template") + `?category=${category.id}`);
+  redirect(template ? setupPath(site.id, "template_selected") : setupPath(site.id, "template") + `?category=${category.id}`);
 }
 
 export async function selectTemplateAction(formData: FormData) {
