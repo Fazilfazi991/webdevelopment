@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { SiteRenderer } from "@/components/site-renderer/site-renderer";
 import { applyEditorMerges, loadEditorContext } from "@/lib/site-editor/editor-loader";
 import { requireSiteSetup } from "@/lib/setup";
+import { hasPermission } from "@/lib/access-control";
 import { cn } from "@/lib/utils";
 import { ContentTab } from "@/app/dashboard/websites/[siteId]/editor/tabs/content-tab";
 import { ImagesTab } from "@/app/dashboard/websites/[siteId]/editor/tabs/images-tab";
@@ -49,18 +50,25 @@ export async function EditorShell({
   searchParams: { message?: string; error?: string; device?: string };
 }) {
   const setup = await requireSiteSetup(siteId);
-  const canEdit = ["owner", "admin", "editor"].includes(setup.membershipRole ?? "");
+  const canEdit = hasPermission(setup.siteAccess, "edit_content", setup.membershipRole);
+  const canUpload = hasPermission(setup.siteAccess, "upload_media", setup.membershipRole);
+  const canDesign = hasPermission(setup.siteAccess, "edit_design", setup.membershipRole);
+  const canSections = hasPermission(setup.siteAccess, "manage_sections", setup.membershipRole);
   const context = await loadEditorContext(setup.supabase, setup.site.id, canEdit);
   const merged = applyEditorMerges(context);
   const deviceClass = searchParams.device === "mobile" ? "max-w-[390px]" : searchParams.device === "tablet" ? "max-w-[768px]" : "max-w-none";
-  const active = tabs.some((tab) => tab.key === activeTab) ? activeTab : "content";
+  const allowedTabs = tabs.filter((tab) => tab.key === "content" || (tab.key === "images" && canUpload) || (tab.key === "design" && canDesign) || (tab.key === "sections" && canSections));
+  const active = allowedTabs.some((tab) => tab.key === activeTab) ? activeTab : "content";
+  const editorBase = setup.siteAccess ? `/client/websites/${setup.site.id}/editor` : `/dashboard/websites/${setup.site.id}/editor`;
+  const previewHref = setup.siteAccess ? `/client/websites/${setup.site.id}/preview` : `/dashboard/websites/${setup.site.id}/preview`;
+  const backHref = setup.siteAccess ? `/client/websites/${setup.site.id}` : "/dashboard/websites";
 
   return (
     <div className="min-h-screen bg-canvas">
       <header className="sticky top-0 z-40 border-b border-line bg-white/95 px-4 py-3 backdrop-blur">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <ButtonLink href="/dashboard/websites" variant="secondary">
+            <ButtonLink href={backHref} variant="secondary">
               <ArrowLeft size={16} />
               Back
             </ButtonLink>
@@ -73,7 +81,7 @@ export async function EditorShell({
             <span className="rounded-app bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-700">
               {canEdit ? "Draft saved manually" : "Preview only"}
             </span>
-            <ButtonLink href={`/dashboard/websites/${setup.site.id}/preview`} variant="secondary">
+            <ButtonLink href={previewHref} variant="secondary">
               <ExternalLink size={16} />
               Open Full Preview
             </ButtonLink>
@@ -92,10 +100,10 @@ export async function EditorShell({
         <aside className="grid gap-4">
           <Card className="p-3">
             <nav className="grid grid-cols-2 gap-2" aria-label="Editor tabs">
-              {tabs.map((tab) => (
+              {allowedTabs.map((tab) => (
                 <Link
                   key={tab.key}
-                  href={`/dashboard/websites/${setup.site.id}/editor/${tab.key}`}
+                  href={`${editorBase}/${tab.key}`}
                   className={cn(
                     "rounded-app px-3 py-2 text-center text-sm font-semibold transition",
                     active === tab.key ? "bg-brand-700 text-white" : "bg-canvas text-muted hover:text-ink"
@@ -109,7 +117,7 @@ export async function EditorShell({
           <StatusMessage error={searchParams.error} message={searchParams.message} />
           {!canEdit ? (
             <Card className="p-4 text-sm leading-6 text-muted">
-              You can view this editor and preview, but your organisation role cannot make changes.
+              You can view this editor and preview, but your access does not include this editing action.
             </Card>
           ) : null}
           <EditorTabContent activeTab={active} siteId={setup.site.id} site={setup.site} organizationId={setup.organization.id} context={context} />
@@ -126,7 +134,7 @@ export async function EditorShell({
               ].map((device) => {
                 const Icon = device.icon;
                 return (
-                  <ButtonLink key={device.key} href={`/dashboard/websites/${setup.site.id}/editor/${active}?device=${device.key}`} variant={searchParams.device === device.key || (!searchParams.device && device.key === "desktop") ? "primary" : "ghost"} aria-label={`${device.key} preview`}>
+                  <ButtonLink key={device.key} href={`${editorBase}/${active}?device=${device.key}`} variant={searchParams.device === device.key || (!searchParams.device && device.key === "desktop") ? "primary" : "ghost"} aria-label={`${device.key} preview`}>
                     <Icon size={16} />
                   </ButtonLink>
                 );

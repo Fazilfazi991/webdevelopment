@@ -258,3 +258,125 @@ export type SitePublishHistory = {
   performed_by: string;
   created_at: string;
 };
+
+export type AgencyRole = "owner" | "admin" | "developer" | "viewer";
+
+export type Agency = {
+  id: string;
+  name: string;
+  slug: string;
+  country_code: string;
+  website: string | null;
+  logo_url: string | null;
+  support_email: string | null;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type AgencyMember = {
+  id: string;
+  agency_id: string;
+  user_id: string;
+  role: AgencyRole;
+  invited_by: string | null;
+  joined_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type Client = {
+  id: string;
+  agency_id: string;
+  name: string;
+  company_name: string | null;
+  email: string | null;
+  phone: string | null;
+  country_code: string | null;
+  notes: string | null;
+  status: "active" | "invited" | "inactive" | "archived";
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type SitePermission =
+  | "edit_content"
+  | "upload_media"
+  | "edit_design"
+  | "manage_sections"
+  | "preview_site"
+  | "publish_site"
+  | "manage_domains"
+  | "view_leads"
+  | "update_leads"
+  | "invite_users"
+  | "transfer_ownership"
+  | "manage_billing";
+
+export type SiteAccessRole = "agency_owner" | "agency_admin" | "developer" | "client_owner" | "client_editor" | "client_viewer";
+
+export type SiteAccessMember = {
+  id: string;
+  site_id: string;
+  user_id: string;
+  access_role: SiteAccessRole;
+  permissions: Partial<Record<SitePermission, boolean>>;
+  granted_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ClientInvitation = {
+  id: string;
+  client_id: string;
+  site_id: string;
+  email: string;
+  invitation_token: string;
+  invitation_status: "pending" | "accepted" | "expired" | "cancelled";
+  access_role: "client_owner" | "client_editor" | "client_viewer";
+  expires_at: string;
+  invited_by: string;
+  accepted_by: string | null;
+  accepted_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type SiteOwnership = {
+  id: string;
+  site_id: string;
+  ownership_type: "organization" | "agency" | "client";
+  owner_organization_id: string | null;
+  owner_agency_id: string | null;
+  owner_client_user_id: string | null;
+  transferred_by: string | null;
+  transferred_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type SiteOwnershipTransfer = {
+  id: string;
+  site_id: string;
+  from_ownership_type: string;
+  to_ownership_type: string;
+  from_owner_reference: string | null;
+  to_owner_reference: string | null;
+  status: "pending" | "approved" | "cancelled" | "completed";
+  requested_by: string;
+  approved_by: string | null;
+  requested_at: string;
+  completed_at: string | null;
+  created_at: string;
+};
+
+export type SiteActivityLog = {
+  id: string;
+  site_id: string;
+  actor_user_id: string | null;
+  action_type: string;
+  action_summary: string;
+  metadata: Record<string, unknown>;
+  created_at: string;
+};

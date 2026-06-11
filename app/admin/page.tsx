@@ -5,14 +5,32 @@ import { formatDate } from "@/lib/utils";
 
 export default async function AdminPage() {
   const { supabase } = await requireAdmin();
-  const [{ count: customers }, { count: organizations }, { count: websites }, { count: drafts }, { count: published }, { count: leads }, { count: domains }] = await Promise.all([
+  const [
+    { count: customers },
+    { count: organizations },
+    { count: websites },
+    { count: drafts },
+    { count: published },
+    { count: leads },
+    { count: domains },
+    { count: agencies },
+    { count: clients },
+    { count: invitations },
+    { count: transfers },
+    { count: activity }
+  ] = await Promise.all([
     supabase.from("profiles").select("id", { count: "exact", head: true }),
     supabase.from("organizations").select("id", { count: "exact", head: true }),
     supabase.from("sites").select("id", { count: "exact", head: true }),
     supabase.from("sites").select("id", { count: "exact", head: true }).eq("status", "draft"),
     supabase.from("sites").select("id", { count: "exact", head: true }).eq("publication_status", "published"),
     supabase.from("contact_leads").select("id", { count: "exact", head: true }),
-    supabase.from("site_domains").select("id", { count: "exact", head: true })
+    supabase.from("site_domains").select("id", { count: "exact", head: true }),
+    supabase.from("agencies").select("id", { count: "exact", head: true }),
+    supabase.from("clients").select("id", { count: "exact", head: true }),
+    supabase.from("client_invitations").select("id", { count: "exact", head: true }),
+    supabase.from("site_ownership_transfers").select("id", { count: "exact", head: true }),
+    supabase.from("site_activity_log").select("id", { count: "exact", head: true })
   ]);
   const { data: recentSites } = await supabase
     .from("sites")
@@ -24,7 +42,7 @@ export default async function AdminPage() {
 
   return (
     <div className="grid gap-6">
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-7">
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {[
           ["Total customers", customers ?? 0],
           ["Organisations", organizations ?? 0],
@@ -32,7 +50,12 @@ export default async function AdminPage() {
           ["Draft websites", drafts ?? 0],
           ["Published websites", published ?? 0],
           ["Leads", leads ?? 0],
-          ["Domains", domains ?? 0]
+          ["Domains", domains ?? 0],
+          ["Agencies", agencies ?? 0],
+          ["Clients", clients ?? 0],
+          ["Invitations", invitations ?? 0],
+          ["Transfers", transfers ?? 0],
+          ["Activity events", activity ?? 0]
         ].map(([label, value]) => (
           <Card key={label} className="p-5">
             <p className="text-sm font-semibold text-muted">{label}</p>

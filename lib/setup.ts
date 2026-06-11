@@ -1,10 +1,13 @@
 import { redirect } from "next/navigation";
-import { requireDashboardContext } from "@/lib/data";
+import { requireDashboardContext, requireUser } from "@/lib/data";
 import type {
   BusinessCategory,
   Industry,
+  Organization,
+  Profile,
   SetupStep,
   Site,
+  SiteAccessMember,
   SiteTemplateSelection,
   Template,
   TemplateCategory,
@@ -27,17 +30,60 @@ export function setupPath(siteId: string, step: SetupStep) {
 }
 
 export async function requireSiteSetup(siteId: string) {
-  const context = await requireDashboardContext();
-  const site = context.sites.find((item) => item.id === siteId);
+  const { supabase, user } = await requireUser();
+  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle<Profile>();
+  const { data: memberships } = await supabase
+    .from("organization_members")
+    .select("organization_id, role, organizations(*)")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: true });
+  const membership = memberships?.[0];
+  let organization = membership?.organizations as Organization | null | undefined;
+  let membershipRole = membership?.role as string | undefined;
+  const { data: orgSites } = organization
+    ? await supabase.from("sites").select("*").eq("organization_id", organization.id).order("updated_at", { ascending: false }).returns<Site[]>()
+    : { data: [] as Site[] };
+  let site = (orgSites ?? []).find((item) => item.id === siteId) as Site | undefined;
+  let siteAccess: SiteAccessMember | null = null;
+
+  if (!site) {
+    const { data: access } = await supabase
+      .from("site_access_members")
+      .select("*")
+      .eq("site_id", siteId)
+      .eq("user_id", user.id)
+      .maybeSingle<SiteAccessMember>();
+    if (access) {
+      const { data: accessibleSite } = await supabase.from("sites").select("*").eq("id", siteId).maybeSingle<Site>();
+      site = accessibleSite ?? undefined;
+      siteAccess = access;
+      if (site && !organization) {
+        organization = {
+          id: site.organization_id,
+          name: "Website owner",
+          slug: "website-owner",
+          country_code: site.country_code,
+          default_currency: "USD",
+          timezone: "Asia/Dubai",
+          created_by: site.created_by,
+          created_at: site.created_at,
+          updated_at: site.updated_at
+        };
+        membershipRole = undefined;
+      }
+    }
+  }
+
   if (!site) redirect("/dashboard/websites");
 
-  const { data: selection } = await context.supabase
+  const { data: selection } = await supabase
     .from("site_template_selections")
     .select("*")
     .eq("site_id", site.id)
     .maybeSingle<SiteTemplateSelection>();
 
-  return { ...context, site: site as Site, selection };
+  if (!organization) redirect("/dashboard/websites");
+  return { supabase, user, profile, organization, membershipRole, sites: orgSites ?? [], site: site as Site, selection, siteAccess };
 }
 
 export async function getIndustries(supabase: Awaited<ReturnType<typeof requireDashboardContext>>["supabase"], includeInactive = false) {

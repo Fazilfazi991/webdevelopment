@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BarChart3, Building2, FileImage, Globe2, LayoutDashboard, LogOut, Settings, Users } from "lucide-react";
+import { BarChart3, Building2, FileImage, Globe2, LayoutDashboard, LogOut, Mail, Settings, Users } from "lucide-react";
 import { logoutAction } from "@/app/auth/actions";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -25,6 +25,20 @@ const adminLinks = [
   { href: "/admin/settings", label: "Platform Settings", icon: Settings }
 ];
 
+const agencyLinks = [
+  { href: "/agency", label: "Overview", icon: LayoutDashboard },
+  { href: "/agency/clients", label: "Clients", icon: Users },
+  { href: "/agency/websites", label: "Websites", icon: Globe2 },
+  { href: "/agency/team", label: "Team", icon: Building2 },
+  { href: "/agency/invitations", label: "Invitations", icon: Mail },
+  { href: "/agency/settings", label: "Settings", icon: Settings }
+];
+
+const clientLinks = [
+  { href: "/client", label: "My Website", icon: Globe2 },
+  { href: "/client/websites", label: "Websites", icon: LayoutDashboard }
+];
+
 export function AppShell({
   children,
   title,
@@ -34,14 +48,14 @@ export function AppShell({
   children: React.ReactNode;
   title: string;
   subtitle?: string;
-  mode?: "dashboard" | "admin";
+  mode?: "dashboard" | "admin" | "agency" | "client";
 }) {
-  const links = mode === "dashboard" ? dashboardLinks : adminLinks;
+  const links = mode === "admin" ? adminLinks : mode === "agency" ? agencyLinks : mode === "client" ? clientLinks : dashboardLinks;
   return (
     <div className="min-h-screen bg-canvas lg:grid lg:grid-cols-[260px_1fr]">
       <aside className="border-b border-line bg-white lg:min-h-screen lg:border-b-0 lg:border-r">
         <div className="flex items-center justify-between px-4 py-4 lg:block lg:px-5">
-          <Link href={mode === "admin" ? "/admin" : "/dashboard"} className="font-bold text-ink">
+          <Link href={mode === "admin" ? "/admin" : mode === "agency" ? "/agency" : mode === "client" ? "/client" : "/dashboard"} className="font-bold text-ink">
             Studio OS
           </Link>
           <form action={logoutAction} className="lg:hidden">

@@ -8,6 +8,7 @@ import { requireSiteSetup } from "@/lib/setup";
 import { publicSitePath } from "@/lib/publishing/constants";
 import { customDomainSchema, leadSchema, leadUpdateSchema, publishSchema, seoSchema, unpublishSchema } from "@/lib/publishing/schemas";
 import { notifyLead } from "@/lib/publishing/email";
+import { hasPermission } from "@/lib/access-control";
 import type { ContactLead, LeadNotificationSetting, SiteVersion } from "@/lib/types";
 
 function value(formData: FormData, key: string) {
@@ -20,7 +21,7 @@ function err(siteId: string, tab: string, message: string): never {
 
 async function requirePublishSite(siteId: string) {
   const context = await requireSiteSetup(siteId);
-  if (!["owner", "admin", "editor"].includes(context.membershipRole ?? "")) {
+  if (!hasPermission(context.siteAccess, "publish_site", context.membershipRole)) {
     redirect(`/dashboard/websites/${siteId}/editor?error=You do not have permission to publish this website.`);
   }
   return context;
@@ -134,8 +135,8 @@ export async function saveSeoAction(formData: FormData) {
 export async function saveCustomDomainAction(formData: FormData) {
   const input = customDomainSchema.safeParse({ siteId: value(formData, "siteId"), domain: value(formData, "domain") });
   if (!input.success) redirect(`/dashboard/websites?error=${encodeURIComponent(input.error.errors[0].message)}`);
-  const { supabase, site, organization, user, membershipRole } = await requireSiteSetup(input.data.siteId);
-  if (!["owner", "admin"].includes(membershipRole ?? "")) err(site.id, "design", "Only owners and admins can manage domains.");
+  const { supabase, site, organization, user, membershipRole, siteAccess } = await requireSiteSetup(input.data.siteId);
+  if (!hasPermission(siteAccess, "manage_domains", membershipRole)) err(site.id, "design", "Only owners and admins can manage domains.");
   const token = crypto.randomUUID();
   const { error } = await supabase.from("site_domains").insert({
     site_id: site.id,
@@ -209,7 +210,11 @@ export async function updateLeadAction(formData: FormData) {
   });
   if (!input.success) redirect("/dashboard/leads?error=Could not update lead.");
   const supabase = createClient();
-  await supabase.from("contact_leads").update({ status: input.data.status, is_read: input.data.isRead === "true" }).eq("id", input.data.leadId);
+  const { data: lead } = await supabase.from("contact_leads").select("site_id").eq("id", input.data.leadId).maybeSingle<{ site_id: string }>();
+  if (lead) {
+    const { data: allowed } = await supabase.rpc("has_site_permission", { target_site_id: lead.site_id, permission_key: "update_leads" });
+    if (allowed) await supabase.from("contact_leads").update({ status: input.data.status, is_read: input.data.isRead === "true" }).eq("id", input.data.leadId);
+  }
   revalidatePath("/dashboard/leads");
   redirect("/dashboard/leads?message=Lead updated.");
 }

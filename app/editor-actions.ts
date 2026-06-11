@@ -14,6 +14,8 @@ import {
   themeOverrideSchema
 } from "@/lib/site-editor/schemas";
 import { requireSiteSetup } from "@/lib/setup";
+import { hasPermission } from "@/lib/access-control";
+import type { SitePermission } from "@/lib/types";
 
 function value(formData: FormData, key: string) {
   return String(formData.get(key) ?? "");
@@ -77,9 +79,9 @@ function sectionContentFromForm(formData: FormData) {
   return content;
 }
 
-async function requireEditableSite(siteId: string) {
+async function requireEditableSite(siteId: string, permission: SitePermission = "edit_content") {
   const context = await requireSiteSetup(siteId);
-  if (!["owner", "admin", "editor"].includes(context.membershipRole ?? "")) {
+  if (!hasPermission(context.siteAccess, permission, context.membershipRole)) {
     redirect(`/dashboard/websites/${siteId}/editor?error=You can preview this website, but you cannot edit it.`);
   }
   return context;
@@ -107,7 +109,7 @@ export async function saveBusinessProfileAction(formData: FormData) {
   });
   if (!input.success) redirect(`/dashboard/websites?error=${encodeURIComponent(input.error.errors[0].message)}`);
 
-  const { supabase, site } = await requireEditableSite(input.data.siteId);
+  const { supabase, site } = await requireEditableSite(input.data.siteId, "edit_design");
   const { error } = await supabase.from("site_business_profiles").upsert(
     {
       site_id: site.id,
@@ -173,7 +175,7 @@ export async function saveSectionContentAction(formData: FormData) {
     content: JSON.stringify(sectionContentFromForm(formData))
   });
   if (!input.success) redirect(`/dashboard/websites?error=${encodeURIComponent(input.error.errors[0].message)}`);
-  const { supabase, site, user } = await requireEditableSite(input.data.siteId);
+  const { supabase, site, user } = await requireEditableSite(input.data.siteId, "edit_content");
   const schema = getSectionSchema(input.data.sectionKey);
   const patch = sectionContentFromForm(formData);
   const current = await loadEditorContext(supabase, site.id, true);
@@ -210,7 +212,7 @@ export async function saveSectionStateAction(formData: FormData) {
   if (input.data.isRequired === "true" && input.data.isEnabled === "false") {
     redirect(`/dashboard/websites/${input.data.siteId}/editor/sections?error=Required sections cannot be disabled.`);
   }
-  const { supabase, site, user } = await requireEditableSite(input.data.siteId);
+  const { supabase, site, user } = await requireEditableSite(input.data.siteId, "manage_sections");
   const { error } = await supabase.from("site_section_overrides").upsert(
     {
       site_id: site.id,
@@ -229,7 +231,7 @@ export async function saveSectionStateAction(formData: FormData) {
 export async function resetSectionAction(formData: FormData) {
   const siteId = value(formData, "siteId");
   const sectionId = value(formData, "sectionId");
-  const { supabase, site } = await requireEditableSite(siteId);
+  const { supabase, site } = await requireEditableSite(siteId, "manage_sections");
   await supabase.from("site_section_overrides").delete().eq("site_id", site.id).eq("template_section_id", sectionId);
   revalidatePath(`/dashboard/websites/${site.id}`);
   redirect(`/dashboard/websites/${site.id}/editor/sections?message=Section reset.`);
@@ -249,7 +251,7 @@ export async function saveMediaMetadataAction(formData: FormData) {
     altText: value(formData, "altText")
   });
   if (!input.success) redirect(`/dashboard/websites?error=${encodeURIComponent(input.error.errors[0].message)}`);
-  const { supabase, site, organization, user } = await requireEditableSite(input.data.siteId);
+  const { supabase, site, organization, user } = await requireEditableSite(input.data.siteId, "upload_media");
   const expectedPrefix = `organizations/${organization.id}/sites/${site.id}/`;
   if (!input.data.storagePath.startsWith(expectedPrefix)) {
     redirect(`/dashboard/websites/${site.id}/editor/images?error=Upload path is not valid for this website.`);
@@ -291,7 +293,7 @@ export async function removeMediaAction(formData: FormData) {
     mediaId: value(formData, "mediaId")
   });
   if (!input.success) redirect("/dashboard/websites?error=Could not remove image.");
-  const { supabase, site } = await requireEditableSite(input.data.siteId);
+  const { supabase, site } = await requireEditableSite(input.data.siteId, "upload_media");
   const { data } = await supabase
     .from("site_media")
     .select("storage_path")
@@ -307,7 +309,7 @@ export async function removeMediaAction(formData: FormData) {
 export async function saveVersionAction(formData: FormData) {
   const input = saveVersionSchema.safeParse({ siteId: value(formData, "siteId") });
   if (!input.success) redirect("/dashboard/websites?error=Could not save version.");
-  const { supabase, site, user } = await requireEditableSite(input.data.siteId);
+  const { supabase, site, user } = await requireEditableSite(input.data.siteId, "edit_content");
   const context = await loadEditorContext(supabase, site.id, true);
   const { count } = await supabase.from("site_versions").select("id", { count: "exact", head: true }).eq("site_id", site.id);
   const { error } = await supabase.from("site_versions").insert({
