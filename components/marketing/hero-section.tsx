@@ -7,7 +7,7 @@ import { HERO } from "./marketing-content";
 // ---------------------------------------------------------------------------
 function DeviceMockup() {
   return (
-    <div className="relative mx-auto w-full max-w-[420px]">
+    <div className="relative mx-auto w-full max-w-[min(420px,calc(100vw-2rem))] pb-8 sm:pb-0">
       {/* Main browser mockup */}
       <div
         className="relative overflow-hidden rounded-xl shadow-2xl"
@@ -18,10 +18,10 @@ function DeviceMockup() {
           <span className="h-2.5 w-2.5 rounded-full bg-red-400" />
           <span className="h-2.5 w-2.5 rounded-full bg-yellow-400" />
           <span className="h-2.5 w-2.5 rounded-full bg-green-400" />
-          <div className="mx-3 flex-1 rounded-sm bg-gray-700 px-2 py-0.5 text-xs text-gray-400">
+          <div className="mx-2 min-w-0 flex-1 truncate rounded-sm bg-gray-700 px-2 py-0.5 text-xs text-gray-400 sm:mx-3">
             interiordezign.com
           </div>
-          <button className="rounded px-2 py-0.5 text-xs text-white" style={{ backgroundColor: "#E8611A" }}>
+          <button className="hidden rounded px-2 py-0.5 text-xs text-white sm:block" style={{ backgroundColor: "#E8611A" }}>
             Get a Quote
           </button>
         </div>
@@ -31,7 +31,7 @@ function DeviceMockup() {
           {/* Navigation bar */}
           <div className="flex items-center justify-between px-4 py-2 text-xs text-gray-300">
             <span className="font-semibold text-white">Interior Dezign</span>
-            <div className="flex gap-3">
+            <div className="hidden gap-3 sm:flex">
               <span>About</span><span>Services</span><span>Projects</span><span>Contact</span>
             </div>
           </div>
@@ -79,8 +79,8 @@ function DeviceMockup() {
 
       {/* Floating mobile phone mockup — positioned bottom-right */}
       <div
-        className="absolute -bottom-4 -right-4 overflow-hidden rounded-xl border-2 border-white shadow-xl"
-        style={{ width: "90px", aspectRatio: "9/16", background: "#1a1a2e" }}
+        className="absolute bottom-0 right-2 overflow-hidden rounded-xl border-2 border-white shadow-xl sm:-bottom-4 sm:-right-4"
+        style={{ width: "clamp(64px, 20vw, 90px)", aspectRatio: "9/16", background: "#1a1a2e" }}
         aria-hidden="true"
       >
         <div className="flex flex-col h-full">
@@ -110,11 +110,11 @@ function DeviceMockup() {
 
 export function HeroSection() {
   return (
-    <section className="bg-white pt-12 pb-16 sm:pt-16 sm:pb-20" aria-label="Hero">
+    <section className="bg-white pb-14 pt-10 sm:pb-20 sm:pt-16" aria-label="Hero">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
           {/* Left: copy */}
-          <div>
+          <div className="min-w-0">
             {/* Badge */}
             <div className="mb-6 flex items-center gap-2">
               <span
@@ -132,7 +132,7 @@ export function HeroSection() {
             </div>
 
             {/* Headline */}
-            <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-gray-900 sm:text-5xl lg:text-[52px]">
+            <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-gray-900 sm:text-5xl lg:text-[52px]">
               {HERO.headline}{" "}
               <span style={{ color: "#E8611A" }}>{HERO.headlineAccent}</span>
             </h1>
@@ -143,11 +143,11 @@ export function HeroSection() {
             </p>
 
             {/* CTAs */}
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="mt-8 grid gap-3 sm:flex sm:flex-wrap">
               <Link
                 id="hero-start-building"
                 href={HERO.primaryCta.href}
-                className="rounded-md px-6 py-3 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
+                className="rounded-md px-6 py-3 text-center text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
                 style={{ backgroundColor: "#E8611A" }}
               >
                 {HERO.primaryCta.label}
@@ -155,7 +155,7 @@ export function HeroSection() {
               <Link
                 id="hero-view-templates"
                 href={HERO.secondaryCta.href}
-                className="flex items-center gap-2 rounded-md border border-gray-200 bg-white px-6 py-3 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50"
+                className="flex items-center justify-center gap-2 rounded-md border border-gray-200 bg-white px-6 py-3 text-center text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50"
               >
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
                   <polygon points="6,3 13,8 6,13" fill="currentColor" />
@@ -165,7 +165,7 @@ export function HeroSection() {
             </div>
 
             {/* Trust notes */}
-            <div className="mt-5 flex flex-wrap gap-4">
+            <div className="mt-5 grid gap-3 sm:flex sm:flex-wrap sm:gap-4">
               {HERO.trustNotes.map((note) => (
                 <span key={note} className="flex items-center gap-1.5 text-sm text-gray-500">
                   <CheckCircle size={14} className="text-green-500" aria-hidden="true" />
@@ -176,7 +176,7 @@ export function HeroSection() {
           </div>
 
           {/* Right: device mockup */}
-          <div className="flex justify-center lg:justify-end">
+          <div className="flex min-w-0 justify-center overflow-hidden px-1 sm:px-0 lg:justify-end">
             {/*
               TODO: Replace DeviceMockup with actual product screenshot.
               Recommended size: 840×525 px for the browser frame.

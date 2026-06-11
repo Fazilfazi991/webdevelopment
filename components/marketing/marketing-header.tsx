@@ -10,11 +10,11 @@ export function MarketingHeader() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-gray-100 bg-white shadow-sm">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
         {/* Logo */}
         <Link
           href="/"
-          className="flex items-center gap-2 font-bold text-gray-900"
+          className="flex min-w-0 items-center gap-2 font-bold text-gray-900"
           aria-label="YourPlatform home"
         >
           <span
@@ -35,7 +35,7 @@ export function MarketingHeader() {
               <rect x="9" y="9" width="6" height="6" rx="1" fill="white" />
             </svg>
           </span>
-          <span className="text-sm font-bold tracking-tight">YourPlatform</span>
+          <span className="truncate text-sm font-bold tracking-tight">YourPlatform</span>
         </Link>
 
         {/* Desktop nav */}
@@ -82,7 +82,7 @@ export function MarketingHeader() {
 
       {/* Mobile drawer */}
       {mobileOpen && (
-        <div className="border-t border-gray-100 bg-white px-4 pb-4 lg:hidden">
+        <div className="max-w-full border-t border-gray-100 bg-white px-4 pb-4 lg:hidden">
           <nav className="mt-2 flex flex-col gap-1" aria-label="Mobile navigation">
             {NAV_LINKS.map((link) => (
               <Link

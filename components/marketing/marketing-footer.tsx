@@ -48,7 +48,7 @@ export function MarketingFooter() {
   return (
     <footer className="border-t border-gray-100 bg-white" aria-label="Site footer">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[220px_repeat(4,1fr)]">
+        <div className="grid gap-10 min-[420px]:grid-cols-2 lg:grid-cols-[220px_repeat(4,1fr)]">
           {/* Brand column */}
           <div className="sm:col-span-2 lg:col-span-1">
             {/* Logo */}
@@ -139,10 +139,10 @@ export function MarketingFooter() {
 
         {/* Bottom bar */}
         <div className="mt-10 flex flex-col items-center justify-between gap-4 border-t border-gray-100 pt-8 sm:flex-row">
-          <p className="text-xs text-gray-400">
+          <p className="text-center text-xs text-gray-400 sm:text-left">
             © {CURRENT_YEAR} YourPlatform. All rights reserved.
           </p>
-          <div className="flex gap-4 text-xs text-gray-400">
+          <div className="flex flex-wrap justify-center gap-4 text-xs text-gray-400 sm:justify-end">
             <Link href="#" className="hover:text-gray-600">Privacy Policy</Link>
             <Link href="#" className="hover:text-gray-600">Terms of Service</Link>
             <Link href="#" className="hover:text-gray-600">Cookie Policy</Link>

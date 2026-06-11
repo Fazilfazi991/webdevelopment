@@ -45,11 +45,11 @@ export default async function WebsitesPage() {
             const category = categories?.find((item) => item.id === selection?.business_category_id);
             const template = templates?.find((item) => item.id === selection?.template_id);
             return (
-              <Card key={site.id} className="p-5">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
+              <Card key={site.id} className="min-w-0 p-5">
+                <div className="flex min-w-0 flex-wrap items-start justify-between gap-4">
+                  <div className="min-w-0">
                     <h3 className="text-lg font-bold text-ink">{site.name}</h3>
-                    <p className="mt-1 text-sm text-muted">/{site.slug}</p>
+                    <p className="mt-1 break-words text-sm text-muted">/{site.slug}</p>
                   </div>
                   <StatusBadge status={site.status} />
                 </div>
@@ -90,7 +90,7 @@ export default async function WebsitesPage() {
                     Template: <span className="font-semibold text-ink">{template?.name ?? "Not selected"}</span>
                   </p>
                 </div>
-                <div className="mt-5 grid grid-cols-[1fr_1fr_auto] gap-2">
+                <div className="mt-5 grid gap-2 min-[460px]:grid-cols-[1fr_1fr_auto]">
                   <ButtonLink href={setupPath(site.id, site.setup_step)} variant="secondary">
                     <Pencil size={16} />
                     {template ? "Edit Website" : "Continue Setup"}

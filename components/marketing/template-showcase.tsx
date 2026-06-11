@@ -15,7 +15,7 @@ interface TemplatePreviewProps {
 
 function TemplatePreviewCard({ template }: TemplatePreviewProps) {
   return (
-    <div className="group overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm transition-shadow hover:shadow-md">
+    <div className="group min-w-0 overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm transition-shadow hover:shadow-md">
       {/* Preview area (CSS mock) */}
       <div
         className="relative overflow-hidden"
@@ -27,7 +27,7 @@ function TemplatePreviewCard({ template }: TemplatePreviewProps) {
           <span className="h-2 w-2 rounded-full bg-red-400/70" />
           <span className="h-2 w-2 rounded-full bg-yellow-400/70" />
           <span className="h-2 w-2 rounded-full bg-green-400/70" />
-          <div className="mx-2 flex-1 rounded-sm bg-white/10 px-2 py-0.5 text-xs text-white/50">
+          <div className="mx-2 min-w-0 flex-1 truncate rounded-sm bg-white/10 px-2 py-0.5 text-xs text-white/50">
             yourbusiness.com
           </div>
         </div>
@@ -35,7 +35,7 @@ function TemplatePreviewCard({ template }: TemplatePreviewProps) {
         {/* Simulated nav */}
         <div className="flex items-center justify-between px-3 py-1.5 text-xs">
           <span className="font-bold text-white">{template.category}</span>
-          <div className="flex gap-2 text-white/60">
+          <div className="hidden gap-2 text-white/60 sm:flex">
             <span>About</span>
             <span>Services</span>
             <span>Contact</span>
@@ -50,7 +50,7 @@ function TemplatePreviewCard({ template }: TemplatePreviewProps) {
 
         {/* Hero content area */}
         <div className="flex flex-col justify-center px-4 py-3">
-          <div className="max-w-[60%]">
+          <div className="max-w-[78%] sm:max-w-[60%]">
             <div
               className="mb-1 h-1 w-12 rounded"
               style={{ backgroundColor: template.accentColor }}
@@ -122,7 +122,7 @@ export function TemplateShowcase() {
         </div>
 
         {/* Template grid */}
-        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
           {TEMPLATES.map((template) => (
             <TemplatePreviewCard key={template.id} template={template} />
           ))}

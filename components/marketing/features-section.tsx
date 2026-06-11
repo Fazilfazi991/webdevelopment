@@ -77,11 +77,11 @@ export function FeaturesSection() {
         </div>
 
         {/* Features grid */}
-        <div className="grid grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="grid grid-cols-1 gap-8 min-[420px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
           {FEATURES.map((feature, i) => {
             const Icon = FEATURE_ICON_COMPONENTS[i];
             return (
-              <div key={feature.title} className="flex flex-col items-center gap-3 text-center">
+              <div key={feature.title} className="flex min-w-0 flex-col items-center gap-3 text-center">
                 {/* Icon */}
                 <span
                   className="flex h-14 w-14 items-center justify-center rounded-2xl"

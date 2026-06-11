@@ -64,20 +64,20 @@ export async function EditorShell({
   const backHref = setup.siteAccess ? `/client/websites/${setup.site.id}` : "/dashboard/websites";
 
   return (
-    <div className="min-h-screen bg-canvas">
+    <div className="min-h-screen min-w-0 overflow-x-hidden bg-canvas">
       <header className="sticky top-0 z-40 border-b border-line bg-white/95 px-4 py-3 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-center gap-3">
             <ButtonLink href={backHref} variant="secondary">
               <ArrowLeft size={16} />
               Back
             </ButtonLink>
-            <div>
+            <div className="min-w-0">
               <p className="text-xs font-semibold uppercase tracking-widest text-muted">Website editor</p>
-              <h1 className="text-lg font-bold text-ink">{setup.site.name}</h1>
+              <h1 className="break-words text-lg font-bold text-ink">{setup.site.name}</h1>
             </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="grid gap-2 min-[420px]:flex min-[420px]:flex-wrap min-[420px]:items-center">
             <span className="rounded-app bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-700">
               {canEdit ? "Draft saved manually" : "Preview only"}
             </span>
@@ -96,8 +96,8 @@ export async function EditorShell({
         </div>
       </header>
 
-      <main className="mx-auto grid max-w-7xl gap-4 p-4 xl:grid-cols-[390px_1fr]">
-        <aside className="grid gap-4">
+      <main className="mx-auto grid max-w-7xl gap-4 p-3 sm:p-4 xl:grid-cols-[390px_1fr]">
+        <aside className="min-w-0 grid gap-4">
           <Card className="p-3">
             <nav className="grid grid-cols-2 gap-2" aria-label="Editor tabs">
               {allowedTabs.map((tab) => (
@@ -123,7 +123,7 @@ export async function EditorShell({
           <EditorTabContent activeTab={active} siteId={setup.site.id} site={setup.site} organizationId={setup.organization.id} context={context} />
         </aside>
 
-        <section className="grid gap-3">
+        <section className="min-w-0 grid gap-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-sm font-semibold text-muted">Live preview updates after saving changes.</p>
             <div className="flex gap-1 rounded-app border border-line bg-white p-1">

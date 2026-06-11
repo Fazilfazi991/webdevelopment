@@ -9,9 +9,9 @@ export function FinalCta() {
       aria-label="Call to action"
     >
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col items-start gap-8 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col items-stretch gap-8 sm:flex-row sm:items-center sm:justify-between">
           {/* Left: icon + copy */}
-          <div className="flex items-center gap-5">
+          <div className="flex min-w-0 flex-col gap-4 min-[420px]:flex-row min-[420px]:items-center min-[420px]:gap-5">
             {/* Rocket icon circle */}
             <span
               className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-white shadow-md"
@@ -31,11 +31,11 @@ export function FinalCta() {
               </svg>
             </span>
 
-            <div>
+            <div className="min-w-0">
               <h2 className="text-xl font-extrabold text-gray-900 sm:text-2xl">
                 Ready to Grow Your Business Online?
               </h2>
-              <p className="mt-1 text-sm text-gray-600">
+              <p className="mt-1 text-sm leading-6 text-gray-600">
                 Join thousands of service businesses that trust YourPlatform to build their professional websites.
               </p>
             </div>
@@ -43,11 +43,11 @@ export function FinalCta() {
 
           {/* Right: CTAs */}
           <div className="flex w-full flex-col gap-4 sm:w-auto">
-            <div className="flex flex-wrap gap-3">
+            <div className="grid gap-3 sm:flex sm:flex-wrap">
               <Link
                 id="cta-start-building"
                 href="/auth/register"
-                className="rounded-md px-6 py-3 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
+                className="rounded-md px-6 py-3 text-center text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90"
                 style={{ backgroundColor: "#E8611A" }}
               >
                 Start Building for Free
@@ -55,7 +55,7 @@ export function FinalCta() {
               <Link
                 id="cta-view-templates"
                 href="#templates"
-                className="rounded-md border border-gray-200 bg-white px-6 py-3 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50"
+                className="rounded-md border border-gray-200 bg-white px-6 py-3 text-center text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50"
               >
                 View Templates
               </Link>

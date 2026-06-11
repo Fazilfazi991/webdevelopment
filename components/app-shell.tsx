@@ -54,7 +54,7 @@ export function AppShell({
 }) {
   const links = mode === "admin" ? adminLinks : mode === "agency" ? agencyLinks : mode === "client" ? clientLinks : dashboardLinks;
   return (
-    <div className="min-h-screen bg-canvas lg:grid lg:grid-cols-[260px_1fr]">
+    <div className="min-h-screen min-w-0 overflow-x-hidden bg-canvas lg:grid lg:grid-cols-[260px_1fr]">
       <aside className="border-b border-line bg-white lg:min-h-screen lg:border-b-0 lg:border-r">
         <div className="flex items-center justify-between px-4 py-4 lg:block lg:px-5">
           <Link href={mode === "admin" ? "/admin" : mode === "agency" ? "/agency" : mode === "client" ? "/client" : "/dashboard"} className="font-bold text-ink">
@@ -66,7 +66,7 @@ export function AppShell({
             </Button>
           </form>
         </div>
-        <nav className="flex gap-2 overflow-x-auto px-4 pb-4 lg:grid lg:px-3">
+        <nav className="flex max-w-full gap-2 overflow-x-auto px-4 pb-4 lg:grid lg:px-3">
           {links.map((link) => (
             <Link
               key={link.href}
@@ -82,11 +82,11 @@ export function AppShell({
           ))}
         </nav>
       </aside>
-      <div className="min-w-0">
+      <div className="min-w-0 overflow-x-hidden">
         <header className="border-b border-line bg-white px-4 py-5 md:px-8">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-ink">{title}</h1>
+          <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
+              <h1 className="break-words text-2xl font-bold text-ink">{title}</h1>
               {subtitle ? <p className="mt-1 text-sm leading-6 text-muted">{subtitle}</p> : null}
             </div>
             <form action={logoutAction} className="hidden lg:block">
@@ -97,7 +97,7 @@ export function AppShell({
             </form>
           </div>
         </header>
-        <main className="px-4 py-6 md:px-8">{children}</main>
+        <main className="min-w-0 px-3 py-5 sm:px-4 md:px-8">{children}</main>
       </div>
     </div>
   );

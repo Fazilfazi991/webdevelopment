@@ -351,7 +351,7 @@ export default async function MediaPage({
                     <CalendarDays size={14} />
                     {formatDate(item.created_at)}
                   </p>
-                  <div className="mt-auto grid grid-cols-2 gap-2 pt-4">
+                  <div className="mt-auto grid gap-2 pt-4 min-[420px]:grid-cols-2">
                     <ButtonLink href={panelHref("preview", item.id, searchParams)} variant="secondary"><Eye size={15} />Preview</ButtonLink>
                     <ButtonLink href={panelHref("edit", item.id, searchParams)} variant="secondary"><Edit3 size={15} />Edit</ButtonLink>
                     <ButtonLink href={panelHref("replace", item.id, searchParams)} variant="secondary" className={!canManage ? "pointer-events-none opacity-50" : ""}><RefreshCw size={15} />Replace</ButtonLink>
