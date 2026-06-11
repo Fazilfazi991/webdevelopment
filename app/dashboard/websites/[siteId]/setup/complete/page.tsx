@@ -18,7 +18,7 @@ export default async function CompletePage({ params }: { params: { siteId: strin
         </p>
         {!selection ? <p className="mt-4 text-sm font-semibold text-danger">Select a template before continuing.</p> : null}
         <div className="mt-6 flex flex-wrap gap-3">
-          <ButtonLink href={`/dashboard/websites/${site.id}/setup/content`}>
+          <ButtonLink href={`/dashboard/websites/${site.id}/editor`}>
             Continue to Website Setup
             <ArrowRight size={16} />
           </ButtonLink>

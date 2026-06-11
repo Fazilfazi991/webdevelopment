@@ -78,7 +78,7 @@ export default async function WebsitesPage() {
                 <div className="mt-5 grid grid-cols-[1fr_1fr_auto] gap-2">
                   <ButtonLink href={setupPath(site.id, site.setup_step)} variant="secondary">
                     <Pencil size={16} />
-                    {template ? "Edit Setup" : "Continue Setup"}
+                    {template ? "Edit Website" : "Continue Setup"}
                   </ButtonLink>
                   {template ? (
                     <ButtonLink href={`/dashboard/websites/${site.id}/preview`} variant="ghost">

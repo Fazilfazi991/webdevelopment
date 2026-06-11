@@ -4,7 +4,7 @@ import { SiteRenderer } from "@/components/site-renderer/site-renderer";
 import { PreviewToolbar, previewDeviceClass } from "@/components/site-renderer/preview-toolbar";
 import { ButtonLink } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/card";
-import { loadSelectedTemplatePreview } from "@/lib/site-renderer/template-loader";
+import { applyEditorMerges, loadEditorContext } from "@/lib/site-editor/editor-loader";
 import { requireSiteSetup } from "@/lib/setup";
 import { cn } from "@/lib/utils";
 
@@ -26,7 +26,8 @@ export async function WebsitePreviewShell({
   device?: string;
 }) {
   const { site, supabase } = await requireSiteSetup(siteId);
-  const result = await loadSelectedTemplatePreview(supabase, site.id);
+  const editorContext = await loadEditorContext(supabase, site.id, false);
+  const result = applyEditorMerges(editorContext);
 
   if (result.status === "no-template") {
     return (

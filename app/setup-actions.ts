@@ -132,7 +132,7 @@ export async function selectTemplateAction(formData: FormData) {
   );
   if (error) redirect(`${setupPath(site.id, "template")}?category=${category.id}&error=Could not save the template selection.`);
 
-  await supabase.from("sites").update({ setup_step: "template_selected", setup_completed_at: new Date().toISOString() }).eq("id", site.id);
+  await supabase.from("sites").update({ setup_step: "content", setup_completed_at: new Date().toISOString() }).eq("id", site.id);
   revalidatePath("/dashboard");
   redirect(setupPath(site.id, "template_selected"));
 }

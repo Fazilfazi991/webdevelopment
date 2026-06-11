@@ -16,10 +16,12 @@ export const setupSteps: Array<{ key: SetupStep; label: string; hrefPart: string
   { key: "industry", label: "Industry", hrefPart: "industry" },
   { key: "business_category", label: "Business Category", hrefPart: "category" },
   { key: "template", label: "Choose Template", hrefPart: "templates" },
-  { key: "template_selected", label: "Template Selected", hrefPart: "complete" }
+  { key: "template_selected", label: "Template Selected", hrefPart: "complete" },
+  { key: "content", label: "Business Details", hrefPart: "content" }
 ];
 
 export function setupPath(siteId: string, step: SetupStep) {
+  if (step === "content") return `/dashboard/websites/${siteId}/editor`;
   const item = setupSteps.find((setupStep) => setupStep.key === step) ?? setupSteps[0];
   return `/dashboard/websites/${siteId}/setup/${item.hrefPart}`;
 }

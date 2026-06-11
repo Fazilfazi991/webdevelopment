@@ -38,7 +38,7 @@ export type Site = {
   updated_at: string;
 };
 
-export type SetupStep = "website_type" | "industry" | "business_category" | "template" | "template_selected";
+export type SetupStep = "website_type" | "industry" | "business_category" | "template" | "template_selected" | "content";
 
 export type Industry = {
   id: string;
@@ -106,6 +106,73 @@ export type SiteTemplateSelection = {
   business_category_id: string | null;
   template_id: string | null;
   selected_by: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type SiteBusinessProfile = {
+  id: string;
+  site_id: string;
+  company_name: string | null;
+  tagline: string | null;
+  short_description: string | null;
+  full_description: string | null;
+  phone: string | null;
+  whatsapp: string | null;
+  email: string | null;
+  address_line_1: string | null;
+  address_line_2: string | null;
+  city: string | null;
+  state_region: string | null;
+  country_code: string | null;
+  postal_code: string | null;
+  map_embed_url: string | null;
+  working_hours: unknown;
+  social_links: unknown;
+  created_at: string;
+  updated_at: string;
+};
+
+export type SiteSectionOverride = {
+  id: string;
+  site_id: string;
+  template_section_id: string;
+  is_enabled: boolean;
+  display_order: number | null;
+  content_override: unknown;
+  settings_override: unknown;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type SiteThemeOverride = {
+  id: string;
+  site_id: string;
+  theme_preset_id: string | null;
+  primary_color: string | null;
+  secondary_color: string | null;
+  accent_color: string | null;
+  font_preset: "professional_sans" | "modern_clean" | "classic_corporate" | "friendly_local" | null;
+  button_style: "square" | "soft_rounded" | "pill" | null;
+  radius_preset: "minimal" | "balanced" | "rounded" | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type SiteMedia = {
+  id: string;
+  site_id: string;
+  organization_id: string;
+  storage_path: string;
+  file_name: string;
+  mime_type: string;
+  file_size: number;
+  width: number | null;
+  height: number | null;
+  alt_text: string | null;
+  usage_type: "logo" | "hero" | "service" | "gallery" | "about" | "favicon" | "general";
+  created_by: string;
   created_at: string;
   updated_at: string;
 };
