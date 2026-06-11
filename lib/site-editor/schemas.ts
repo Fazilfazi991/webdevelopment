@@ -65,6 +65,13 @@ export const removeMediaSchema = z.object({
   mediaId: z.string().uuid()
 });
 
+export const updateMediaDetailsSchema = z.object({
+  siteId: z.string().uuid(),
+  mediaId: z.string().uuid(),
+  usageType: z.enum(["logo", "hero", "service", "gallery", "about", "favicon", "general"]),
+  altText: z.string().trim().max(180).optional()
+});
+
 export const saveVersionSchema = z.object({
   siteId: z.string().uuid()
 });

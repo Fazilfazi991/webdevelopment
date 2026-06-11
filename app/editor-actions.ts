@@ -11,7 +11,8 @@ import {
   saveVersionSchema,
   sectionOverrideSchema,
   sectionStateSchema,
-  themeOverrideSchema
+  themeOverrideSchema,
+  updateMediaDetailsSchema
 } from "@/lib/site-editor/schemas";
 import { requireSiteSetup } from "@/lib/setup";
 import { hasPermission } from "@/lib/access-control";
@@ -19,6 +20,13 @@ import type { SitePermission } from "@/lib/types";
 
 function value(formData: FormData, key: string) {
   return String(formData.get(key) ?? "");
+}
+
+function mediaReturnPath(formData: FormData, siteId: string) {
+  const returnPath = value(formData, "returnPath");
+  if (returnPath.startsWith("/dashboard/media")) return returnPath;
+  if (returnPath.startsWith(`/dashboard/websites/${siteId}/editor/images`)) return returnPath;
+  return `/dashboard/websites/${siteId}/editor/images`;
 }
 
 function jsonList(value: string) {
@@ -252,9 +260,10 @@ export async function saveMediaMetadataAction(formData: FormData) {
   });
   if (!input.success) redirect(`/dashboard/websites?error=${encodeURIComponent(input.error.errors[0].message)}`);
   const { supabase, site, organization, user } = await requireEditableSite(input.data.siteId, "upload_media");
+  const returnPath = mediaReturnPath(formData, site.id);
   const expectedPrefix = `organizations/${organization.id}/sites/${site.id}/`;
   if (!input.data.storagePath.startsWith(expectedPrefix)) {
-    redirect(`/dashboard/websites/${site.id}/editor/images?error=Upload path is not valid for this website.`);
+    redirect(`${returnPath}${returnPath.includes("?") ? "&" : "?"}error=Upload path is not valid for this website.`);
   }
   const { error } = await supabase.from("site_media").insert({
     site_id: site.id,
@@ -271,7 +280,7 @@ export async function saveMediaMetadataAction(formData: FormData) {
   });
   if (error) {
     await supabase.storage.from("site-media").remove([input.data.storagePath]);
-    redirect(`/dashboard/websites/${site.id}/editor/images?error=Upload completed, but image details could not be saved. The uploaded file was cleaned up.`);
+    redirect(`${returnPath}${returnPath.includes("?") ? "&" : "?"}error=Upload completed, but image details could not be saved. The uploaded file was cleaned up.`);
   }
   if (input.data.replaceMediaId) {
     const { data: replaced } = await supabase
@@ -284,7 +293,8 @@ export async function saveMediaMetadataAction(formData: FormData) {
     await supabase.from("site_media").delete().eq("site_id", site.id).eq("id", input.data.replaceMediaId);
   }
   revalidatePath(`/dashboard/websites/${site.id}`);
-  redirect(`/dashboard/websites/${site.id}/editor/images?message=Image uploaded.`);
+  revalidatePath("/dashboard/media");
+  redirect(`${returnPath}${returnPath.includes("?") ? "&" : "?"}message=Image uploaded.`);
 }
 
 export async function removeMediaAction(formData: FormData) {
@@ -294,6 +304,7 @@ export async function removeMediaAction(formData: FormData) {
   });
   if (!input.success) redirect("/dashboard/websites?error=Could not remove image.");
   const { supabase, site } = await requireEditableSite(input.data.siteId, "upload_media");
+  const returnPath = mediaReturnPath(formData, site.id);
   const { data } = await supabase
     .from("site_media")
     .select("storage_path")
@@ -303,7 +314,32 @@ export async function removeMediaAction(formData: FormData) {
   if (data?.storage_path) await supabase.storage.from("site-media").remove([data.storage_path]);
   await supabase.from("site_media").delete().eq("site_id", site.id).eq("id", input.data.mediaId);
   revalidatePath(`/dashboard/websites/${site.id}`);
-  redirect(`/dashboard/websites/${site.id}/editor/images?message=Image removed.`);
+  revalidatePath("/dashboard/media");
+  redirect(`${returnPath}${returnPath.includes("?") ? "&" : "?"}message=Image removed.`);
+}
+
+export async function updateMediaDetailsAction(formData: FormData) {
+  const input = updateMediaDetailsSchema.safeParse({
+    siteId: value(formData, "siteId"),
+    mediaId: value(formData, "mediaId"),
+    usageType: value(formData, "usageType"),
+    altText: value(formData, "altText")
+  });
+  if (!input.success) redirect("/dashboard/media?error=Could not update image details.");
+  const { supabase, site } = await requireEditableSite(input.data.siteId, "upload_media");
+  const returnPath = mediaReturnPath(formData, site.id);
+  const { error } = await supabase
+    .from("site_media")
+    .update({
+      usage_type: input.data.usageType,
+      alt_text: input.data.altText || null
+    })
+    .eq("site_id", site.id)
+    .eq("id", input.data.mediaId);
+  if (error) redirect(`${returnPath}${returnPath.includes("?") ? "&" : "?"}error=Could not update image details.`);
+  revalidatePath(`/dashboard/websites/${site.id}`);
+  revalidatePath("/dashboard/media");
+  redirect(`${returnPath}${returnPath.includes("?") ? "&" : "?"}message=Image details updated.`);
 }
 
 export async function saveVersionAction(formData: FormData) {

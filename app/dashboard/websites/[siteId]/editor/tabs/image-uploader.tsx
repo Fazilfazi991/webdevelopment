@@ -62,17 +62,23 @@ export function ImageUploader({
   siteId,
   organizationId,
   media,
-  canEdit
+  canEdit,
+  initialUsageType = "hero",
+  initialReplaceMediaId = "",
+  returnPath
 }: {
   siteId: string;
   organizationId: string;
   media: SiteMedia[];
   canEdit: boolean;
+  initialUsageType?: SiteMedia["usage_type"];
+  initialReplaceMediaId?: string;
+  returnPath?: string;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
-  const [usageType, setUsageType] = useState<SiteMedia["usage_type"]>("hero");
+  const [usageType, setUsageType] = useState<SiteMedia["usage_type"]>(initialUsageType);
   const [altText, setAltText] = useState("");
-  const [replaceMediaId, setReplaceMediaId] = useState("");
+  const [replaceMediaId, setReplaceMediaId] = useState(initialReplaceMediaId);
   const [status, setStatus] = useState("");
   const [warning, setWarning] = useState("");
   const [isPending, startTransition] = useTransition();
@@ -119,6 +125,7 @@ export function ImageUploader({
     formData.set("fileName", file.name);
     formData.set("mimeType", file.type);
     formData.set("fileSize", String(file.size));
+    if (returnPath) formData.set("returnPath", returnPath);
     if (dimensions.width) formData.set("width", String(dimensions.width));
     if (dimensions.height) formData.set("height", String(dimensions.height));
     formData.set("altText", altText);
