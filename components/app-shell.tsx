@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BarChart3, Bot, Building2, FileImage, Globe2, LayoutDashboard, LogOut, Mail, Settings, Users } from "lucide-react";
+import { BarChart3, Bot, Building2, Globe2, LayoutDashboard, LogOut, Mail, Settings, Users } from "lucide-react";
 import { logoutAction } from "@/app/auth/actions";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -7,10 +7,8 @@ import { cn } from "@/lib/utils";
 // ─── Nav link definitions ─────────────────────────────────────────────────────
 
 const dashboardLinks = [
-  { href: "/dashboard", label: "Home", icon: LayoutDashboard },
-  { href: "/dashboard/websites", label: "Websites", icon: Globe2 },
-  { href: "/dashboard/media", label: "Media", icon: FileImage },
-  { href: "/dashboard/leads", label: "Leads", icon: Users },
+  { href: "/dashboard/websites", label: "My Websites", icon: Globe2 },
+  { href: "/dashboard/leads", label: "All Leads", icon: Users },
   { href: "/dashboard/settings", label: "Account", icon: Settings }
 ];
 
@@ -59,7 +57,7 @@ export function AppShell({
   const allLinks = mode === "admin" ? adminLinks : mode === "agency" ? agencyLinks : mode === "client" ? clientLinks : dashboardLinks;
 
   // On desktop, show all links in the sidebar.
-  // On mobile bottom nav, only the 5 primary dashboard tabs are shown.
+  // On mobile bottom nav, show only the primary account-level tabs.
   const mobileNavLinks = mode === "dashboard" ? dashboardLinks : allLinks.slice(0, 5);
 
   const homeHref = mode === "admin" ? "/admin" : mode === "agency" ? "/agency" : mode === "client" ? "/client" : "/dashboard";
