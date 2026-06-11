@@ -119,7 +119,8 @@ export async function generateFieldAiSuggestionAction(formData: FormData) {
     sectionKey: formValue(formData, "sectionKey") || undefined,
     fieldKey: formValue(formData, "fieldKey"),
     currentValue: formValue(formData, "currentValue"),
-    language: formValue(formData, "language") || undefined
+    language: formValue(formData, "language") || undefined,
+    instruction: formValue(formData, "instruction") || undefined
   });
   if (!input.success) redirect(`/dashboard/websites?error=${encodeURIComponent(input.error.errors[0].message)}`);
   const setup = await requireAiEditableSite(input.data.siteId);
@@ -144,6 +145,48 @@ export async function generateFieldAiSuggestionAction(formData: FormData) {
   redirect(`${base}/ai-suggestions?message=Field suggestion created.`);
 }
 
+export async function regenerateAiSuggestionAction(formData: FormData) {
+  const input = aiSuggestionIdSchema.safeParse({ siteId: formValue(formData, "siteId"), suggestionId: formValue(formData, "suggestionId") });
+  if (!input.success) redirect("/dashboard/websites?error=Could not regenerate suggestion.");
+  const setup = await requireAiEditableSite(input.data.siteId);
+  const base = aiBase(setup.site.id, Boolean(setup.siteAccess));
+  if (!isAiAvailable()) redirect(`${base}/ai-suggestions?error=AI is not configured. Use mock mode locally or add a server-side provider key.`);
+  const { data: suggestion } = await setup.supabase
+    .from("ai_content_suggestions")
+    .select("*")
+    .eq("site_id", setup.site.id)
+    .eq("id", input.data.suggestionId)
+    .maybeSingle<AiContentSuggestion>();
+  if (!suggestion) redirect(`${base}/ai-suggestions?error=Suggestion is no longer available.`);
+  if (!["business_profile", "section_field", "seo", "translation"].includes(suggestion.suggestion_type)) {
+    redirect(`${base}/ai-suggestions?error=This suggestion is review-only. Generate website content suggestions to refresh recommendations and image guidance.`);
+  }
+  const { data: profile } = await setup.supabase.from("ai_site_profiles").select("*").eq("site_id", setup.site.id).maybeSingle<AiSiteProfile>();
+  const requestType = suggestion.suggestion_type === "translation" ? "translation" : suggestion.suggestion_type === "seo" ? "seo_suggestion" : "rewrite";
+  const promptTemplate = await loadPromptTemplate(setup.supabase, requestType);
+  try {
+    await generateAiSuggestions({
+      supabase: setup.supabase,
+      siteId: setup.site.id,
+      userId: setup.user.id,
+      requestType,
+      profile: profile ?? null,
+      payload: {
+        sectionKey: suggestion.section_key ?? undefined,
+        fieldKey: suggestion.field_key,
+        currentValue: typeof suggestion.original_value === "string" ? suggestion.original_value : typeof suggestion.suggested_value === "string" ? suggestion.suggested_value : JSON.stringify(suggestion.suggested_value ?? ""),
+        language: suggestion.language,
+        instruction: "Regenerate a fresh alternative suggestion."
+      },
+      promptTemplate
+    });
+  } catch {
+    redirect(`${base}/ai-suggestions?error=AI could not regenerate a safe suggestion.`);
+  }
+  revalidatePath(`${base}/ai-suggestions`);
+  redirect(`${base}/ai-suggestions?message=Suggestion regenerated.`);
+}
+
 function setNestedValue(base: Record<string, unknown>, fieldKey: string, value: unknown) {
   const parts = fieldKey.split(".");
   if (parts.length === 1) return { ...base, [fieldKey]: value };
@@ -151,6 +194,9 @@ function setNestedValue(base: Record<string, unknown>, fieldKey: string, value: 
   const nested = base[first] && typeof base[first] === "object" && !Array.isArray(base[first]) ? { ...(base[first] as Record<string, unknown>) } : {};
   return { ...base, [first]: { ...nested, [second]: value } };
 }
+
+const businessProfileSuggestionFields = new Set(["company_name", "tagline", "short_description", "full_description"]);
+const seoSuggestionFields = new Set(["seo_title", "seo_description", "seo_keywords", "og_title", "og_description"]);
 
 export async function applyAiSuggestionAction(formData: FormData) {
   const input = aiSuggestionIdSchema.safeParse({ siteId: formValue(formData, "siteId"), suggestionId: formValue(formData, "suggestionId") });
@@ -166,8 +212,10 @@ export async function applyAiSuggestionAction(formData: FormData) {
   if (!suggestion || !["pending", "approved"].includes(suggestion.status)) redirect(`${base}/ai-suggestions?error=Suggestion is no longer available.`);
 
   if (suggestion.suggestion_type === "business_profile") {
+    if (!businessProfileSuggestionFields.has(suggestion.field_key)) redirect(`${base}/ai-suggestions?error=Suggestion targets an unsupported business profile field.`);
     await setup.supabase.from("site_business_profiles").upsert({ site_id: setup.site.id, [suggestion.field_key]: suggestion.suggested_value }, { onConflict: "site_id" });
   } else if (suggestion.suggestion_type === "seo") {
+    if (!seoSuggestionFields.has(suggestion.field_key)) redirect(`${base}/ai-suggestions?error=Suggestion targets an unsupported SEO field.`);
     await setup.supabase.from("sites").update({ [suggestion.field_key]: suggestion.suggested_value }).eq("id", setup.site.id);
   } else if (suggestion.suggestion_type === "section_field" || suggestion.suggestion_type === "translation") {
     if (!suggestion.section_key) redirect(`${base}/ai-suggestions?error=Suggestion is missing a section.`);
@@ -190,6 +238,8 @@ export async function applyAiSuggestionAction(formData: FormData) {
       },
       { onConflict: "site_id,template_section_id" }
     );
+  } else {
+    redirect(`${base}/ai-suggestions?error=This suggestion is review-only and cannot be applied directly.`);
   }
 
   await setup.supabase

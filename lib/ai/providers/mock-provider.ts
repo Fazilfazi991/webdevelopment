@@ -17,9 +17,17 @@ export class MockAiProvider implements AiProvider {
     const businessName = text(profile.business_name, "Horizon Technical Services");
     const services = Array.isArray(profile.services) && profile.services.length ? profile.services.map(String) : ["AC Maintenance", "Electrical Repairs", "Plumbing Support"];
     const currentValue = text(input.payload.currentValue, "");
+    const instruction = text(input.payload.instruction, "");
 
     const output = ["rewrite", "shorten", "grammar_fix", "translation"].includes(input.requestType)
-      ? { value: input.requestType === "shorten" ? currentValue.slice(0, 120) || `${businessName} provides reliable support.` : `${currentValue || `${businessName} provides reliable support for homes and businesses.`}` }
+      ? {
+          value:
+            input.requestType === "shorten"
+              ? currentValue.slice(0, 120) || `${businessName} provides reliable support.`
+              : instruction.includes("professional")
+                ? `${currentValue || `${businessName} provides reliable support for homes and businesses.`} We communicate clearly, work carefully, and keep the next step straightforward.`
+                : `${currentValue || `${businessName} provides reliable support for homes and businesses.`}`
+        }
       : {
           businessProfile: {
             companyName: businessName,

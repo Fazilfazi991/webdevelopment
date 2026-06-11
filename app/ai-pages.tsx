@@ -3,6 +3,7 @@ import {
   applyAiSuggestionAction,
   generateFieldAiSuggestionAction,
   generateSiteAiSuggestionsAction,
+  regenerateAiSuggestionAction,
   rejectAiSuggestionAction,
   saveAiProfileAction
 } from "@/app/ai-actions";
@@ -203,6 +204,14 @@ export async function AiSuggestionsPage({
                       Reject
                     </Button>
                   </form>
+                  <form action={regenerateAiSuggestionAction}>
+                    <input type="hidden" name="siteId" value={setup.site.id} />
+                    <input type="hidden" name="suggestionId" value={suggestion.id} />
+                    <Button type="submit" variant="secondary" disabled={!canEdit || !["pending", "approved"].includes(suggestion.status)}>
+                      <Sparkles size={16} />
+                      Regenerate
+                    </Button>
+                  </form>
                 </div>
               </div>
               <div className="mt-4 grid gap-3 md:grid-cols-2">
@@ -245,6 +254,7 @@ export function EditorAiTools({ siteId, sectionKey, fieldKey, currentValue, canE
   const actions = [
     { type: "rewrite", label: "Improve Writing", icon: Sparkles },
     { type: "shorten", label: "Make It Shorter", icon: FileText },
+    { type: "rewrite", label: "Make More Professional", icon: Sparkles, instruction: "Make this more professional while preserving the meaning." },
     { type: "grammar_fix", label: "Fix Grammar", icon: Check },
     { type: "translation", label: "Translate", icon: Languages }
   ] as const;
@@ -260,6 +270,7 @@ export function EditorAiTools({ siteId, sectionKey, fieldKey, currentValue, canE
             <input type="hidden" name="fieldKey" value={fieldKey} />
             <input type="hidden" name="currentValue" value={currentValue} />
             <input type="hidden" name="language" value={action.type === "translation" ? "Arabic" : "English"} />
+            <input type="hidden" name="instruction" value={"instruction" in action ? action.instruction : ""} />
             <Button type="submit" variant="secondary" className="min-h-8 px-2 py-1 text-xs" disabled={!canEdit || !currentValue}>
               <Icon size={14} />
               {action.label}

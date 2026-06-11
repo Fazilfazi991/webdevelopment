@@ -30,7 +30,8 @@ export const aiActionSchema = z.object({
   sectionKey: z.string().trim().max(120).optional(),
   fieldKey: z.string().trim().min(1).max(120),
   currentValue: z.string().trim().max(1200).optional(),
-  language: z.string().trim().max(40).optional()
+  language: z.string().trim().max(40).optional(),
+  instruction: z.string().trim().max(120).optional()
 });
 
 export const aiSuggestionIdSchema = z.object({
