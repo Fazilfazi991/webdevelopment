@@ -184,7 +184,24 @@ export type SiteMedia = {
   width: number | null;
   height: number | null;
   alt_text: string | null;
-  usage_type: "logo" | "hero" | "service" | "gallery" | "about" | "favicon" | "general";
+  usage_type:
+    | "logo"
+    | "hero"
+    | "service"
+    | "service:ac-maintenance"
+    | "service:electrical"
+    | "service:plumbing"
+    | "service:painting"
+    | "service:interior-repairs"
+    | "service:preventive-maintenance"
+    | "gallery"
+    | "gallery:project-01"
+    | "gallery:project-02"
+    | "gallery:project-03"
+    | "gallery:project-04"
+    | "about"
+    | "favicon"
+    | "general";
   created_by: string;
   created_at: string;
   updated_at: string;

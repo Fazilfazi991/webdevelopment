@@ -141,7 +141,7 @@ export async function EditorShell({
               })}
             </div>
           </div>
-          <div className={cn("mx-auto w-full overflow-hidden rounded-app border border-line bg-white shadow-soft", deviceClass)}>
+          <div className={cn("mx-auto w-full min-w-0 overflow-x-hidden overflow-y-auto rounded-app border border-line bg-white shadow-soft", deviceClass)}>
             {merged.status === "ready" ? (
               <SiteRenderer preview={merged.preview} pageSlug="home" />
             ) : (

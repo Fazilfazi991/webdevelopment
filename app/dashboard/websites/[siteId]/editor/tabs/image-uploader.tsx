@@ -4,6 +4,7 @@ import { useRef, useState, useTransition } from "react";
 import { saveMediaMetadataAction } from "@/app/editor-actions";
 import { Button } from "@/components/ui/button";
 import { Field, inputClassName } from "@/components/ui/field";
+import { baseSlot, mediaSlotLabel, siteMediaSlots } from "@/lib/site-renderer/media-slots";
 import { createClient } from "@/lib/supabase/client";
 import type { SiteMedia } from "@/lib/types";
 
@@ -53,7 +54,7 @@ function dimensionWarning(usageType: string, width?: number, height?: number) {
     service: [800, 600],
     gallery: [1200, 900]
   };
-  const rule = rules[usageType];
+  const rule = rules[baseSlot(usageType as SiteMedia["usage_type"])];
   if (!rule) return "";
   return width < rule[0] || height < rule[1] ? `Recommended minimum for this use is ${rule[0]} x ${rule[1]}.` : "";
 }
@@ -138,12 +139,11 @@ export function ImageUploader({
     <div className="mt-4 grid gap-3">
       <Field label="Usage type">
         <select className={inputClassName} value={usageType} onChange={(event) => setUsageType(event.target.value as SiteMedia["usage_type"])} disabled={!canEdit || isPending}>
-          <option value="logo">Logo</option>
-          <option value="hero">Hero image</option>
-          <option value="about">About image</option>
-          <option value="service">Service image</option>
-          <option value="gallery">Project gallery</option>
-          <option value="general">General library</option>
+          {siteMediaSlots.map((slot) => (
+            <option key={slot} value={slot}>
+              {mediaSlotLabel(slot)}
+            </option>
+          ))}
         </select>
       </Field>
       <Field label="Replace existing image">
@@ -151,7 +151,7 @@ export function ImageUploader({
           <option value="">Add as new image</option>
           {media.map((item) => (
             <option key={item.id} value={item.id}>
-              Replace {item.usage_type}: {item.file_name}
+              Replace {mediaSlotLabel(item.usage_type)}: {item.file_name}
             </option>
           ))}
         </select>

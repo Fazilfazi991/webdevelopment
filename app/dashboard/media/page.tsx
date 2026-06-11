@@ -7,17 +7,12 @@ import { Card, EmptyState } from "@/components/ui/card";
 import { Field, inputClassName } from "@/components/ui/field";
 import { hasPermission } from "@/lib/access-control";
 import { requireDashboardContext } from "@/lib/data";
+import { mediaSlotLabel, siteMediaSlots } from "@/lib/site-renderer/media-slots";
 import type { SiteMedia } from "@/lib/types";
 
 const usageOptions = [
   { value: "", label: "All" },
-  { value: "logo", label: "Logo" },
-  { value: "hero", label: "Hero" },
-  { value: "about", label: "About" },
-  { value: "service", label: "Services" },
-  { value: "gallery", label: "Gallery" },
-  { value: "favicon", label: "Favicon" },
-  { value: "general", label: "General" }
+  ...siteMediaSlots.map((slot) => ({ value: slot, label: mediaSlotLabel(slot) }))
 ] as const;
 
 const sortOptions = [
@@ -48,16 +43,7 @@ function dimensions(item: SiteMedia) {
 }
 
 function whereUsed(item: SiteMedia) {
-  const labels: Record<SiteMedia["usage_type"], string> = {
-    logo: "Logo area",
-    hero: "Home hero",
-    about: "About section",
-    service: "Service card",
-    gallery: "Gallery",
-    favicon: "Browser favicon",
-    general: "Reusable asset"
-  };
-  return labels[item.usage_type];
+  return mediaSlotLabel(item.usage_type);
 }
 
 function panelHref(panel: string, id: string | undefined, searchParams: Record<string, string | undefined>) {

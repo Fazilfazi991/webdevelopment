@@ -5,6 +5,7 @@ import { SiteRenderer } from "@/components/site-renderer/site-renderer";
 import { SetupProgress } from "@/components/setup/setup-progress";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { Card, EmptyState } from "@/components/ui/card";
+import { applyEditorMerges, loadEditorContext } from "@/lib/site-editor/editor-loader";
 import { loadTemplatePreviewByTemplateId } from "@/lib/site-renderer/template-loader";
 import { getCategories, getTemplateById, requireSiteSetup } from "@/lib/setup";
 import { cn } from "@/lib/utils";
@@ -33,7 +34,9 @@ export default async function TemplatePreviewPage({
   const categories = await getCategories(supabase);
   const category = categories.find((item) => item.id === categoryId);
   const { template, pages } = await getTemplateById(supabase, params.templateId);
-  const renderedPreview = template ? await loadTemplatePreviewByTemplateId(supabase, template.id) : null;
+  const selectedTemplatePreview =
+    template && selection?.template_id === template.id ? applyEditorMerges(await loadEditorContext(supabase, site.id, false)) : null;
+  const renderedPreview = selectedTemplatePreview ?? (template ? await loadTemplatePreviewByTemplateId(supabase, template.id) : null);
   const device = currentDevice(searchParams.device);
   const selectedDevice = previewDevices.find((item) => item.key === device) ?? previewDevices[0];
 
@@ -107,7 +110,7 @@ export default async function TemplatePreviewPage({
           </div>
           <div className="overflow-auto bg-[#eef3ef] p-3 md:p-5">
             <div
-              className="relative mx-auto h-[760px] max-h-[calc(100vh-220px)] min-h-[560px] overflow-auto rounded-app bg-white shadow-soft transform-gpu [&_.fixed]:absolute"
+              className="relative mx-auto h-[760px] max-h-[calc(100vh-220px)] min-h-[560px] min-w-0 overflow-x-hidden overflow-y-auto rounded-app bg-white shadow-soft [&_.fixed]:absolute"
               style={{ width: selectedDevice.width, maxWidth: "100%" }}
             >
               {renderedPreview?.status === "ready" ? (

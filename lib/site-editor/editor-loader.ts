@@ -1,5 +1,6 @@
 import { defaultSiteTheme, type SiteThemeTokens } from "@/lib/site-renderer/theme-types";
 import { loadSelectedTemplatePreview } from "@/lib/site-renderer/template-loader";
+import { applyMediaOverridesToContent } from "@/lib/site-renderer/media-slots";
 import type { TemplateSectionRecord } from "@/lib/site-renderer/template-types";
 import type { SiteBusinessProfile, SiteMedia, SiteSectionOverride, SiteThemeOverride } from "@/lib/types";
 import type { requireSiteSetup } from "@/lib/setup";
@@ -66,32 +67,6 @@ export function mergeBusinessProfile(content: unknown, profile: SiteBusinessProf
   return mergeObjects(content, patch);
 }
 
-function latestMedia(media: SiteMedia[], usageType: SiteMedia["usage_type"]) {
-  return media.find((item) => item.usage_type === usageType && item.signed_url);
-}
-
-function applyMediaToContent(content: unknown, sectionKey: string, media: SiteMedia[]) {
-  const current = content && typeof content === "object" && !Array.isArray(content) ? { ...(content as Record<string, unknown>) } : {};
-  const usageType = sectionKey.includes("hero")
-    ? "hero"
-    : sectionKey.includes("about")
-      ? "about"
-      : sectionKey.includes("service")
-        ? "service"
-        : sectionKey.includes("gallery") || sectionKey.includes("project")
-          ? "gallery"
-          : null;
-  const match = usageType ? latestMedia(media, usageType) : null;
-  if (!match?.signed_url) return current;
-  return {
-    ...current,
-    image: {
-      src: match.signed_url,
-      alt: match.alt_text || match.file_name
-    }
-  };
-}
-
 export function applyEditorMerges(context: EditorContext) {
   if (context.previewResult.status !== "ready") return context.previewResult;
   const overrides = new Map(context.sectionOverrides.map((override) => [override.template_section_id, override]));
@@ -100,7 +75,7 @@ export function applyEditorMerges(context: EditorContext) {
     .map((section) => {
       const override = overrides.get(section.id);
       const content = mergeObjects(
-        applyMediaToContent(mergeBusinessProfile(section.default_content, context.businessProfile), section.section_key, context.media),
+        applyMediaOverridesToContent(mergeBusinessProfile(section.default_content, context.businessProfile), section.section_key, context.media),
         override?.content_override
       );
       return {
@@ -124,6 +99,15 @@ export function applyEditorMerges(context: EditorContext) {
   };
 }
 
+export async function refreshSignedMediaUrls(supabase: Supabase, media: SiteMedia[]) {
+  return Promise.all(
+    media.map(async (item) => {
+      const { data } = await supabase.storage.from("site-media").createSignedUrl(item.storage_path, 60 * 15);
+      return { ...item, signed_url: data?.signedUrl };
+    })
+  );
+}
+
 export async function loadEditorContext(supabase: Supabase, siteId: string, canEdit: boolean): Promise<EditorContext> {
   const [previewResult, profileResult, overridesResult, themeResult, mediaResult] = await Promise.all([
     loadSelectedTemplatePreview(supabase, siteId),
@@ -133,12 +117,7 @@ export async function loadEditorContext(supabase: Supabase, siteId: string, canE
     supabase.from("site_media").select("*").eq("site_id", siteId).order("created_at", { ascending: false }).returns<SiteMedia[]>()
   ]);
 
-  const media = await Promise.all(
-    (mediaResult.data ?? []).map(async (item) => {
-      const { data } = await supabase.storage.from("site-media").createSignedUrl(item.storage_path, 60 * 15);
-      return { ...item, signed_url: data?.signedUrl };
-    })
-  );
+  const media = await refreshSignedMediaUrls(supabase, mediaResult.data ?? []);
 
   return {
     previewResult,

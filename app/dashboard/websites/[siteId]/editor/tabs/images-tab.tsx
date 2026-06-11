@@ -2,6 +2,7 @@ import { removeMediaAction } from "@/app/editor-actions";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ImageUploader } from "@/app/dashboard/websites/[siteId]/editor/tabs/image-uploader";
+import { mediaSlotLabel } from "@/lib/site-renderer/media-slots";
 import type { loadEditorContext } from "@/lib/site-editor/editor-loader";
 
 export function ImagesTab({
@@ -36,7 +37,7 @@ export function ImagesTab({
                 ) : null}
                 <p className="font-semibold text-ink">{item.file_name}</p>
                 <p className="text-muted">
-                  {item.usage_type} - {item.width ?? "?"} x {item.height ?? "?"} - {item.mime_type}
+                  {mediaSlotLabel(item.usage_type)} - {item.width ?? "?"} x {item.height ?? "?"} - {item.mime_type}
                 </p>
                 <p className="mt-1 break-all text-xs text-muted">{item.storage_path}</p>
                 <form action={removeMediaAction} className="mt-3">

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { siteMediaSlots } from "@/lib/site-renderer/media-slots";
 
 export const hexColorSchema = z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Use a valid hex colour such as #0f766e");
 
@@ -51,7 +52,7 @@ export const mediaSchema = z.object({
   siteId: z.string().uuid(),
   storagePath: z.string().min(10),
   replaceMediaId: z.string().uuid().optional().or(z.literal("")),
-  usageType: z.enum(["logo", "hero", "service", "gallery", "about", "favicon", "general"]),
+  usageType: z.enum(siteMediaSlots),
   fileName: z.string().trim().min(2).max(160),
   mimeType: z.enum(["image/jpeg", "image/png", "image/webp", "image/svg+xml"]),
   fileSize: z.coerce.number().int().min(1).max(5242880, "Keep images under 5 MB"),
@@ -68,7 +69,7 @@ export const removeMediaSchema = z.object({
 export const updateMediaDetailsSchema = z.object({
   siteId: z.string().uuid(),
   mediaId: z.string().uuid(),
-  usageType: z.enum(["logo", "hero", "service", "gallery", "about", "favicon", "general"]),
+  usageType: z.enum(siteMediaSlots),
   altText: z.string().trim().max(180).optional()
 });
 

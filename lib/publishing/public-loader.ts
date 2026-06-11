@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { applyEditorMerges, type EditorContext } from "@/lib/site-editor/editor-loader";
+import { applyEditorMerges, refreshSignedMediaUrls, type EditorContext } from "@/lib/site-editor/editor-loader";
 import { createClient } from "@/lib/supabase/server";
 import type { LoadedTemplatePreview, TemplateSectionRecord } from "@/lib/site-renderer/template-types";
 import type { Site, SiteVersion } from "@/lib/types";
@@ -54,7 +54,8 @@ export async function loadPublicSite(subdomain: string, pageSlug = "home", leadS
   const snapshot = version?.snapshot as EditorContext | undefined;
   if (!snapshot) notFound();
 
-  const merged = applyEditorMerges({ ...snapshot, canEdit: false });
+  const media = await refreshSignedMediaUrls(supabase, snapshot.media ?? []);
+  const merged = applyEditorMerges({ ...snapshot, media, canEdit: false });
   if (merged.status !== "ready") notFound();
 
   const pageExists = merged.preview.pages.some((page) => page.page_slug === pageSlug) || pageSlug === "home";
