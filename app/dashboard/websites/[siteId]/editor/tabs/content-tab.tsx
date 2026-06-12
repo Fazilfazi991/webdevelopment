@@ -150,7 +150,16 @@ export function ContentTab({ siteId, context, searchParams }: { siteId: string; 
     if (initialQueryPage) setPageChosen(true);
   }, [initialQueryPage]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (new URLSearchParams(window.location.search).has("page")) setPageChosen(true);
+  }, [livePreview?.currentPageSlug]);
+
   const pageSections = selectedPageSlug ? sections.filter((section) => section.page_slug === selectedPageSlug) : [];
+  const visiblePageSections = pageSections.filter((section) => {
+    if (selectedPageSlug !== "home" || section.section_key !== "contact-map-form") return true;
+    return !pageSections.some((candidate) => candidate.section_key === "contact-cta-banner");
+  });
   const selected = sections.find((section) => section.id === livePreview?.selectedSectionId && section.page_slug === selectedPageSlug) ?? initialSection;
 
   if (!selectedPageSlug) {
@@ -192,7 +201,7 @@ export function ContentTab({ siteId, context, searchParams }: { siteId: string; 
         <p className="mt-1 text-sm text-muted [text-wrap:pretty]">{editorPageTitle(selectedPageSlug)} sections only. Choose one here or click it in the preview.</p>
       </div>
       <div className="max-h-64 overflow-y-auto rounded-xl bg-white shadow-[0_10px_30px_rgba(24,33,31,0.08),inset_0_0_0_1px_rgba(0,0,0,0.06)]">
-        {pageSections.map((section) => { const active = selected?.id === section.id; const label = customerSectionLabel(section); return <button key={section.id} data-editor-list-section-id={section.id} type="button" onClick={() => livePreview?.selectSection(section.id)} className={`flex min-h-14 w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors active:bg-brand-50 ${active ? "bg-brand-50" : "hover:bg-canvas"}`}><span><span className="block text-sm font-bold text-ink">{label}</span><span className="mt-0.5 block text-xs text-muted">{customerSectionDescriptions[label]}</span></span><ChevronRight size={17} className={`shrink-0 ${active ? "text-brand-700" : "text-muted"}`} /></button>; })}
+        {visiblePageSections.map((section) => { const active = selected?.id === section.id; const label = customerSectionLabel(section); return <button key={section.id} data-editor-list-section-id={section.id} type="button" onClick={() => livePreview?.selectSection(section.id)} className={`flex min-h-14 w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors active:bg-brand-50 ${active ? "bg-brand-50" : "hover:bg-canvas"}`}><span><span className="block text-sm font-bold text-ink">{label}</span><span className="mt-0.5 block text-xs text-muted">{customerSectionDescriptions[label]}</span></span><ChevronRight size={17} className={`shrink-0 ${active ? "text-brand-700" : "text-muted"}`} /></button>; })}
       </div>
       {selected ? <div className="border-t border-line pt-4"><SectionEditor key={selected.id} siteId={siteId} section={selected} canEdit={context.canEdit} /></div> : null}
     </div>
