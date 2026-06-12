@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { loadEditorContext } from "@/lib/site-editor/editor-loader";
 import { requireSiteSetup } from "@/lib/setup";
-import { publicSitePath } from "@/lib/publishing/constants";
+import { publicSitePath, publicSiteUrl } from "@/lib/publishing/constants";
 import { customDomainSchema, leadSchema, leadUpdateSchema, publishSchema, seoSchema, unpublishSchema } from "@/lib/publishing/schemas";
 import { notifyLead } from "@/lib/publishing/email";
 import { hasPermission } from "@/lib/access-control";
@@ -75,14 +75,18 @@ export async function publishWebsiteAction(formData: FormData) {
     .eq("id", site.id);
   if (error) err(site.id, "content", "Could not publish the website.");
 
+  const publishedAddress = new URL(publicSiteUrl(input.data.subdomain));
   await supabase.from("site_domains").upsert(
     {
       site_id: site.id,
       organization_id: organization.id,
-      domain: `${input.data.subdomain}.${process.env.NEXT_PUBLIC_PLATFORM_DOMAIN || "yourplatform.com"}`,
-      domain_type: "platform_subdomain",
+      domain: `${publishedAddress.host}${publishedAddress.pathname}`,
+      domain_type: process.env.NEXT_PUBLIC_PLATFORM_WILDCARD_ENABLED === "true" ? "platform_subdomain" : "platform_path",
       status: "active",
+      verification_status: "verified",
+      ssl_status: "active",
       is_primary: true,
+      redirect_to_primary: false,
       verified_at: new Date().toISOString(),
       created_by: user.id
     },

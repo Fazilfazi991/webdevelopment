@@ -10,6 +10,7 @@ import type { SiteMedia } from "@/lib/types";
 /** Slots we surface visually — excludes "general" and base slots like "service" */
 const PRIMARY_SLOTS: SiteMedia["usage_type"][] = [
   "logo",
+  "logo-dark",
   "hero",
   "about",
   "service:ac-maintenance",
@@ -22,19 +23,22 @@ const PRIMARY_SLOTS: SiteMedia["usage_type"][] = [
   "gallery:project-02",
   "gallery:project-03",
   "gallery:project-04",
-  "favicon"
+  "favicon",
+  "social-share"
 ];
 
 const TEMPLATE_DEFAULTS = technicalServicesImagePack.images;
 
 const SLOT_GROUPS = [
-  { title: "Brand", slots: ["logo", "favicon"] as SiteMedia["usage_type"][] },
+  { title: "Branding", slots: ["logo", "logo-dark", "favicon", "social-share"] as SiteMedia["usage_type"][] },
   { title: "Main website", slots: ["hero", "about"] as SiteMedia["usage_type"][] },
   { title: "Services", slots: PRIMARY_SLOTS.filter((slot) => slot.startsWith("service:")) },
   { title: "Projects", slots: PRIMARY_SLOTS.filter((slot) => slot.startsWith("gallery:")) }
 ];
 
 const RECOMMENDED_DIMS: Partial<Record<SiteMedia["usage_type"], string>> = {
+  "logo-dark": "300 x 120 px, transparent PNG/SVG preferred",
+  "social-share": "1200 x 630 px",
   logo: "300 × 120 px, PNG/SVG preferred",
   hero: "1600 × 900 px",
   about: "1200 × 900 px",
@@ -80,7 +84,7 @@ function ImageSlotCard({
           <img
             src={displaySrc}
             alt={uploadedItem?.alt_text ?? mediaSlotLabel(slot)}
-            className="h-full w-full object-cover"
+            className="h-full w-full object-cover outline outline-1 outline-black/10"
           />
         ) : (
           <div className="flex h-full items-center justify-center text-center text-xs font-semibold text-muted px-2">
@@ -122,7 +126,7 @@ function ImageSlotCard({
           <input type="hidden" name="siteId" value={siteId} />
           <input type="hidden" name="mediaId" value={uploadedItem.id} />
           <Button type="submit" variant="secondary" className="w-full text-xs">
-            Remove
+            Use Design Default
           </Button>
         </form>
       )}
@@ -140,7 +144,7 @@ export function ImagesTab({
   context: Awaited<ReturnType<typeof loadEditorContext>>;
 }) {
   const uploadedSlots = new Set(context.media.filter((item) => item.signed_url).map((item) => item.usage_type));
-  const contentSlots = PRIMARY_SLOTS.filter((slot) => slot !== "logo" && slot !== "favicon");
+  const contentSlots = PRIMARY_SLOTS.filter((slot) => !["logo", "logo-dark", "favicon", "social-share"].includes(slot));
   const customizedCount = contentSlots.filter((slot) => uploadedSlots.has(slot)).length;
   const readyCount = contentSlots.filter((slot) => uploadedSlots.has(slot) || TEMPLATE_DEFAULTS[slot]).length;
   const completion = Math.round((readyCount / contentSlots.length) * 100);

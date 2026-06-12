@@ -39,7 +39,10 @@ export const headerSchema = z.object({
   email: z.string().optional(),
   location: z.string().optional(),
   nav: z.array(navItemSchema).default([]),
-  primaryAction: actionSchema.optional()
+  primaryAction: actionSchema.optional(),
+  logo: imageSchema.optional(),
+  showBusinessNameFallback: z.boolean().optional(),
+  logoAlignment: z.enum(["left", "center"]).optional()
 });
 
 export const heroSplitSchema = headingBlockSchema.extend({
@@ -129,7 +132,10 @@ export const footerSchema = z.object({
   summary: z.string().optional(),
   phone: z.string().optional(),
   email: z.string().optional(),
-  links: z.array(navItemSchema).default([])
+  links: z.array(navItemSchema).default([]),
+  logo: imageSchema.optional(),
+  showBusinessNameFallback: z.boolean().optional(),
+  logoAlignment: z.enum(["left", "center"]).optional()
 });
 
 export const floatingActionSchema = z.object({

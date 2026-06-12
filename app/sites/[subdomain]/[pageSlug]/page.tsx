@@ -4,8 +4,8 @@ import { loadPublicSite, publicSiteMetadata } from "@/lib/publishing/public-load
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: { subdomain: string; pageSlug: string } }) {
-  const { site } = await loadPublicSite(params.subdomain, params.pageSlug);
-  return publicSiteMetadata(site);
+  const { site, metadataAssets } = await loadPublicSite(params.subdomain, params.pageSlug);
+  return publicSiteMetadata(site, metadataAssets);
 }
 
 export default async function PublicSitePage({

@@ -46,6 +46,7 @@ export type Site = {
   robots_index: boolean;
   robots_follow: boolean;
   last_published_version_id: string | null;
+  google_verification_token: string | null;
   created_by: string;
   created_at: string;
   updated_at: string;
@@ -188,6 +189,7 @@ export type SiteMedia = {
   alt_text: string | null;
   usage_type:
     | "logo"
+    | "logo-dark"
     | "hero"
     | "service"
     | "service:ac-maintenance"
@@ -203,6 +205,7 @@ export type SiteMedia = {
     | "gallery:project-04"
     | "about"
     | "favicon"
+    | "social-share"
     | "general";
   created_by: string;
   created_at: string;
@@ -224,16 +227,49 @@ export type SiteDomain = {
   site_id: string;
   organization_id: string;
   domain: string;
-  domain_type: "platform_subdomain" | "custom_domain";
-  status: "pending" | "verified" | "active" | "failed" | "removed";
+  domain_type: "platform_path" | "platform_subdomain" | "custom_domain";
+  status: "pending" | "verifying" | "verified" | "active" | "failed" | "removed";
+  verification_status: "pending" | "verifying" | "verified" | "failed";
+  ssl_status: "pending" | "active" | "failed";
   verification_token: string | null;
   verification_method: string | null;
   verification_details: unknown;
   is_primary: boolean;
+  redirect_to_primary: boolean;
   verified_at: string | null;
   created_by: string;
   created_at: string;
   updated_at: string;
+};
+
+export type SiteBrandingSettings = {
+  site_id: string;
+  use_logo_colors: boolean;
+  show_business_name_fallback: boolean;
+  logo_alignment: "left" | "center";
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type SiteDeveloperSettings = {
+  site_id: string;
+  custom_header_code: string | null;
+  custom_footer_code: string | null;
+  version_number: number;
+  updated_by: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type SiteDeveloperSettingVersion = {
+  id: string;
+  site_id: string;
+  version_number: number;
+  custom_header_code: string | null;
+  custom_footer_code: string | null;
+  created_by: string;
+  created_at: string;
 };
 
 export type ContactLead = {

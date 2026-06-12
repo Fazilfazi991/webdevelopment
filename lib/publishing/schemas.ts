@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { reservedSubdomains } from "@/lib/publishing/constants";
 
-const subdomain = z
+export const subdomainSchema = z
   .string()
   .trim()
   .toLowerCase()
@@ -12,7 +12,7 @@ const subdomain = z
 
 export const publishSchema = z.object({
   siteId: z.string().uuid(),
-  subdomain
+  subdomain: subdomainSchema
 });
 
 export const unpublishSchema = z.object({

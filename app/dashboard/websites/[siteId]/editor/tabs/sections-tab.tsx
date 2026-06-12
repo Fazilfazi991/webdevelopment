@@ -3,13 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { inputClassName } from "@/components/ui/field";
 import type { loadEditorContext } from "@/lib/site-editor/editor-loader";
-
-function humanise(key: string) {
-  return key
-    .replace(/^(header|footer)-/, "")
-    .replaceAll("-", " ")
-    .replace(/\b\w/g, (c) => c.toUpperCase());
-}
+import { customerSectionLabel } from "@/lib/site-editor/section-labels";
 
 export function SectionsTab({
   siteId,
@@ -55,7 +49,7 @@ export function SectionsTab({
                   <div key={section.id} className="grid gap-2 p-3">
                     <div className="flex items-center justify-between gap-2">
                       <div>
-                        <p className="font-semibold text-ink">{humanise(section.section_key)}</p>
+                        <p className="font-semibold text-ink">{customerSectionLabel(section)}</p>
                         <p className="text-xs font-semibold uppercase tracking-widest text-muted">
                           {isRequired ? "Required" : "Optional"}
                         </p>
@@ -87,7 +81,7 @@ export function SectionsTab({
                         name="isEnabled"
                         defaultValue={String(section.is_active)}
                         disabled={!context.canEdit || isRequired}
-                        aria-label={`Enable or disable ${humanise(section.section_key)}`}
+                        aria-label={`Enable or disable ${customerSectionLabel(section)}`}
                       >
                         <option value="true">Enabled</option>
                         <option value="false">Disabled</option>

@@ -93,12 +93,10 @@ export function HeaderStandard({ content }: { content: z.infer<typeof headerSche
         </div>
       </div>
       <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-5 py-4">
-        <Link href="#" className="group flex min-w-0 items-center gap-3 focus:outline-none focus:ring-2 focus:ring-[var(--site-primary)]">
-          <span className="flex size-10 items-center justify-center rounded-[var(--site-button-radius)] bg-[var(--site-primary)] text-white">
-            <Wrench size={20} />
-          </span>
+        <Link href="#" className={`group flex min-w-0 items-center gap-3 focus:outline-none focus:ring-2 focus:ring-[var(--site-primary)] ${content.logoAlignment === "center" ? "mx-auto" : ""}`}>
+          {content.logo ? <Image src={content.logo.src} alt={content.logo.alt} width={180} height={48} unoptimized className="max-h-12 w-auto max-w-[180px] object-contain outline outline-1 outline-black/10" /> : <span className="flex size-10 items-center justify-center rounded-[var(--site-button-radius)] bg-[var(--site-primary)] text-white"><Wrench size={20} /></span>}
           <span className="min-w-0">
-            <span className="block break-words font-[var(--site-heading-font)] text-lg font-bold text-[var(--site-ink)]">{content.companyName}</span>
+            {content.showBusinessNameFallback !== false ? <span className="block break-words font-[var(--site-heading-font)] text-lg font-bold text-[var(--site-ink)]">{content.companyName}</span> : null}
             {content.location ? <span className="block break-words text-xs text-[var(--site-muted)]">{content.location}</span> : null}
           </span>
         </Link>
@@ -416,7 +414,8 @@ export function FooterStandard({ content }: { content: z.infer<typeof footerSche
     <footer className="bg-[var(--site-ink)] text-white">
       <div className="mx-auto grid max-w-7xl grid-cols-[repeat(auto-fit,minmax(min(100%,14rem),1fr))] gap-8 px-5 py-10">
         <div className="min-w-0">
-          <h2 className="break-words font-[var(--site-heading-font)] text-xl font-bold">{content.companyName}</h2>
+          {content.logo ? <Image src={content.logo.src} alt={content.logo.alt} width={200} height={56} unoptimized className="max-h-14 w-auto max-w-[200px] object-contain outline outline-1 outline-white/10" /> : null}
+          {content.showBusinessNameFallback !== false ? <h2 className="break-words font-[var(--site-heading-font)] text-xl font-bold">{content.companyName}</h2> : null}
           {content.summary ? <p className="mt-3 max-w-md break-words text-sm leading-6 text-white/70">{content.summary}</p> : null}
         </div>
         <nav aria-label="Footer navigation" className="grid gap-2">

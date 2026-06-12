@@ -21,7 +21,7 @@ type PreviewContextValue = {
   patchTheme: (patch: ThemePatch) => void;
   patchImage: (slot: SiteMediaSlot, src: string, alt: string) => void;
   selectedSectionId: string | null;
-  selectSection: (sectionId: string | null) => void;
+  selectSection: (sectionId: string | null, source?: "list" | "preview") => void;
   isDirty: boolean;
   markSaved: () => void;
 };
@@ -50,11 +50,15 @@ export function LivePreviewWorkspace({
   const [isDirty, setIsDirty] = useState(false);
   const previewScroller = useRef<HTMLDivElement>(null);
 
-  function selectSection(sectionId: string | null) {
+  function selectSection(sectionId: string | null, source: "list" | "preview" = "list") {
     const scrollTop = previewScroller.current?.scrollTop;
     setSelectedSectionId(sectionId);
     requestAnimationFrame(() => {
       if (previewScroller.current && scrollTop !== undefined) previewScroller.current.scrollTop = scrollTop;
+      if (!sectionId) return;
+      const previewSection = previewScroller.current?.querySelector<HTMLElement>(`[data-editor-section-id="${sectionId}"]`);
+      if (source === "list") previewSection?.scrollIntoView({ behavior: "smooth", block: "center" });
+      document.querySelector<HTMLElement>(`[data-editor-list-section-id="${sectionId}"]`)?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     });
   }
 
@@ -126,7 +130,7 @@ export function LivePreviewWorkspace({
             </div>
             <div ref={previewScroller} className="max-h-[calc(100vh-180px)] overflow-auto bg-[#edf1ef] p-2 sm:p-4">
               <div className="mx-auto min-h-[620px] overflow-hidden rounded-lg bg-white shadow-lg">
-                {preview ? <SiteRenderer preview={preview} pageSlug={pageSlug} editor={{ selectedSectionId: selectedSectionId ?? undefined, onSelectSection: selectSection }} /> : <div className="flex min-h-[500px] items-center justify-center p-8 text-center"><div><h3 className="font-bold text-ink">Choose a design first</h3><p className="mt-2 text-sm text-muted">The website preview will appear here.</p></div></div>}
+                {preview ? <SiteRenderer preview={preview} pageSlug={pageSlug} editor={{ selectedSectionId: selectedSectionId ?? undefined, onSelectSection: (sectionId) => selectSection(sectionId, "preview") }} /> : <div className="flex min-h-[500px] items-center justify-center p-8 text-center"><div><h3 className="font-bold text-ink">Choose a design first</h3><p className="mt-2 text-sm text-muted">The website preview will appear here.</p></div></div>}
               </div>
             </div>
           </div>

@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "smoke:routes": "node scripts/smoke-routes.cjs",
     "smoke:design-system": "node scripts/smoke-design-system.cjs",
-    "verify:design-media": "node scripts/verify-design-media-persistence.cjs"
+    "verify:design-media": "node scripts/verify-design-media-persistence.cjs",
+    "smoke:branding-domains": "node scripts/smoke-branding-domains.cjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",

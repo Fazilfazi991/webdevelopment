@@ -2,6 +2,7 @@ import type { SiteMedia } from "@/lib/types";
 
 export const siteMediaSlots = [
   "logo",
+  "logo-dark",
   "hero",
   "about",
   "service",
@@ -73,6 +74,7 @@ export function baseSlot(slot: SiteMediaSlot): SiteMediaSlot {
 export function mediaSlotLabel(slot: SiteMediaSlot | string) {
   const labels: Record<SiteMediaSlot, string> = {
     logo: "Logo",
+    "logo-dark": "Logo for dark backgrounds",
     hero: "Hero image",
     about: "About image",
     service: "Service image",

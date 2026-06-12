@@ -53,11 +53,12 @@ export function WebsiteWorkspaceShell({
   const nav = [
     { label: "Overview", href: base, icon: Home, show: true },
     { label: "Edit Website", href: `${base}/editor`, icon: Pencil, show: permissions.edit },
-    { label: "Website Style", href: `${base}/editor/design`, icon: Palette, show: permissions.design },
+    { label: "Website Style", href: `${base}/design`, icon: Palette, show: permissions.design },
     { label: "Pages", href: `${base}/editor/pages`, icon: FileText, show: permissions.edit },
     { label: "Photos & Images", href: `${base}/media`, icon: ImageIcon, show: permissions.media },
     { label: "Enquiries", href: `${base}/leads`, icon: MessageSquareText, show: permissions.leads },
     { label: "Google Search Setup", href: `${base}/seo`, icon: Search, show: permissions.edit },
+    { label: "Website Address", href: `${base}/domains`, icon: Globe2, show: permissions.publish },
     { label: "Blog", href: base, icon: FileText, show: true, locked: true },
     { label: "Settings", href: `${base}/settings`, icon: Settings, show: permissions.edit }
   ];
@@ -71,14 +72,14 @@ export function WebsiteWorkspaceShell({
     { label: "AI Chatbot", icon: Bot, locked: true },
     { label: "Analytics", icon: BarChart3, locked: true },
     { label: "Bookings", icon: CalendarDays, locked: true },
-    { label: "Custom Domain", icon: Globe2, locked: false },
+    { label: "Website Address", icon: Globe2, locked: false },
     { label: "Team Access", icon: Users, locked: true }
   ];
 
   function switchHref(nextSiteId: string) {
     const suffix = pathname.slice(base.length);
-    const safeSuffix = ["", "/editor", "/media", "/leads", "/seo", "/settings", "/preview"].some(
-      (allowed) => suffix === allowed || (allowed === "/editor" && suffix.startsWith("/editor/"))
+    const safeSuffix = ["", "/editor", "/media", "/leads", "/seo", "/settings", "/preview", "/design", "/domains"].some(
+      (allowed) => suffix === allowed || (["/editor", "/settings", "/design"].includes(allowed) && suffix.startsWith(`${allowed}/`))
     ) ? suffix : "";
     return `/dashboard/websites/${nextSiteId}${safeSuffix}`;
   }
@@ -116,7 +117,7 @@ export function WebsiteWorkspaceShell({
           })}
         </nav>
         <div className="mt-4 border-t border-line pt-4"><p className="px-3 text-[11px] font-bold uppercase tracking-widest text-muted">More tools</p>{[
-          ["AI Chatbot", Bot], ["Analytics", BarChart3], ["Custom Domain", Globe2], ["Team Access", Users]
+          ["AI Chatbot", Bot], ["Analytics", BarChart3], ["Website Address", Globe2], ["Team Access", Users]
         ].map(([label, Icon]) => <div key={label as string} className="flex min-h-10 items-center gap-3 px-3 text-sm text-muted opacity-55"><Icon size={17} /><span className="flex-1">{label as string}</span><Lock size={13} /></div>)}</div>
       </aside>
 
@@ -178,7 +179,7 @@ export function WebsiteWorkspaceShell({
             <div className="my-4 border-t border-line" />
             <p className="px-3 text-[11px] font-bold uppercase tracking-widest text-muted">More tools</p>
             <div className="mt-2 grid gap-1">
-              {mobileTools.map(({ label, icon: Icon, locked }) => locked ? <div key={label} className="flex min-h-11 items-center gap-3 px-3 text-sm text-muted opacity-60"><Icon size={18} /><span className="flex-1">{label}</span><Lock size={14} /></div> : <Link key={label} href={`${base}/settings`} onClick={() => setDrawerOpen(false)} className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm text-ink hover:bg-canvas"><Icon size={18} /><span className="flex-1">{label}</span></Link>)}
+              {mobileTools.map(({ label, icon: Icon, locked }) => locked ? <div key={label} className="flex min-h-11 items-center gap-3 px-3 text-sm text-muted opacity-60"><Icon size={18} /><span className="flex-1">{label}</span><Lock size={14} /></div> : <Link key={label} href={label === "Website Address" ? `${base}/domains` : `${base}/settings`} onClick={() => setDrawerOpen(false)} className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm text-ink hover:bg-canvas"><Icon size={18} /><span className="flex-1">{label}</span></Link>)}
             </div>
           </div>
 

@@ -2,7 +2,7 @@ import { defaultSiteTheme, type SiteThemeTokens } from "@/lib/site-renderer/them
 import { loadSelectedTemplatePreview } from "@/lib/site-renderer/template-loader";
 import { applyMediaOverridesToContent } from "@/lib/site-renderer/media-slots";
 import type { TemplateSectionRecord } from "@/lib/site-renderer/template-types";
-import type { SiteBusinessProfile, SiteMedia, SiteSectionOverride, SiteThemeOverride } from "@/lib/types";
+import type { SiteBrandingSettings, SiteBusinessProfile, SiteMedia, SiteSectionOverride, SiteThemeOverride } from "@/lib/types";
 import type { requireSiteSetup } from "@/lib/setup";
 
 type Supabase = Awaited<ReturnType<typeof requireSiteSetup>>["supabase"];
@@ -13,6 +13,7 @@ export type EditorContext = {
   sectionOverrides: SiteSectionOverride[];
   themeOverride: SiteThemeOverride | null;
   media: SiteMedia[];
+  branding?: SiteBrandingSettings | null;
   canEdit: boolean;
 };
 
@@ -74,10 +75,20 @@ export function applyEditorMerges(context: EditorContext) {
   const sections = preview.sections
     .map((section) => {
       const override = overrides.get(section.id);
-      const content = mergeObjects(
+      let content = mergeObjects(
         applyMediaOverridesToContent(mergeBusinessProfile(section.default_content, context.businessProfile), section.section_key, context.media),
         override?.content_override
       );
+      if (["header-topbar-standard", "header-clean", "footer-standard"].includes(section.section_key)) {
+        const logoSlot = section.section_key === "footer-standard" ? "logo-dark" : "logo";
+        const logo = context.media.find((item) => item.usage_type === logoSlot && item.signed_url)
+          ?? context.media.find((item) => item.usage_type === "logo" && item.signed_url);
+        content = mergeObjects(content, {
+          logo: logo?.signed_url ? { src: logo.signed_url, alt: logo.alt_text || logo.file_name } : undefined,
+          showBusinessNameFallback: context.branding?.show_business_name_fallback ?? true,
+          logoAlignment: context.branding?.logo_alignment ?? "left"
+        });
+      }
       return {
         ...section,
         default_content: content,
@@ -109,12 +120,13 @@ export async function refreshSignedMediaUrls(supabase: Supabase, media: SiteMedi
 }
 
 export async function loadEditorContext(supabase: Supabase, siteId: string, canEdit: boolean): Promise<EditorContext> {
-  const [previewResult, profileResult, overridesResult, themeResult, mediaResult] = await Promise.all([
+  const [previewResult, profileResult, overridesResult, themeResult, mediaResult, brandingResult] = await Promise.all([
     loadSelectedTemplatePreview(supabase, siteId),
     supabase.from("site_business_profiles").select("*").eq("site_id", siteId).maybeSingle<SiteBusinessProfile>(),
     supabase.from("site_section_overrides").select("*").eq("site_id", siteId).returns<SiteSectionOverride[]>(),
     supabase.from("site_theme_overrides").select("*").eq("site_id", siteId).maybeSingle<SiteThemeOverride>(),
-    supabase.from("site_media").select("*").eq("site_id", siteId).order("created_at", { ascending: false }).returns<SiteMedia[]>()
+    supabase.from("site_media").select("*").eq("site_id", siteId).order("created_at", { ascending: false }).returns<SiteMedia[]>(),
+    supabase.from("site_branding_settings").select("*").eq("site_id", siteId).maybeSingle<SiteBrandingSettings>()
   ]);
 
   const media = await refreshSignedMediaUrls(supabase, mediaResult.data ?? []);
@@ -125,6 +137,7 @@ export async function loadEditorContext(supabase: Supabase, siteId: string, canE
     sectionOverrides: overridesResult.data ?? [],
     themeOverride: themeResult.data ?? null,
     media,
+    branding: brandingResult.data ?? null,
     canEdit
   };
 }

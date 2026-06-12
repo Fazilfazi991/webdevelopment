@@ -10,44 +10,10 @@ import { Button, ButtonLink } from "@/components/ui/button";
 import { Field, inputClassName } from "@/components/ui/field";
 import type { loadEditorContext } from "@/lib/site-editor/editor-loader";
 import type { TemplateSectionRecord } from "@/lib/site-renderer/template-types";
-
-const sectionLabels: Record<string, string> = {
-  "hero-split-image": "Hero Banner",
-  "hero-background-overlay": "Hero Banner",
-  "hero-minimal-services": "Hero Banner",
-  "service-highlights-row": "Highlights",
-  "why-choose-us-grid": "Highlights",
-  "about-image-left": "About Us",
-  "about-image-right": "About Us",
-  "services-card-grid": "Services",
-  "services-icon-grid": "Services",
-  "services-alternating-rows": "Services",
-  "project-gallery-grid": "Projects",
-  "testimonials-cards": "Customer Reviews",
-  "faq-accordion": "Questions",
-  "contact-cta-banner": "Contact",
-  "contact-map-form": "Contact",
-  "footer-standard": "Footer"
-};
-
-const descriptions: Record<string, string> = {
-  "Hero Banner": "The first message customers see",
-  Highlights: "Your strongest reasons to choose the business",
-  "About Us": "Your business story and introduction",
-  Services: "What the business offers",
-  Projects: "Photos and examples of recent work",
-  "Customer Reviews": "What customers say about the business",
-  Questions: "Answers to common customer questions",
-  Contact: "How customers can get in touch",
-  Footer: "Business details at the bottom of every page"
-};
+import { customerSectionDescriptions, customerSectionLabel } from "@/lib/site-editor/section-labels";
 
 function text(value: unknown) {
   return typeof value === "string" ? value : "";
-}
-
-function labelFor(section: TemplateSectionRecord) {
-  return sectionLabels[section.section_key] ?? "Website Section";
 }
 
 function SectionItemsEditor({
@@ -114,7 +80,7 @@ function SectionItemsEditor({
 function SectionEditor({ siteId, section, canEdit }: { siteId: string; section: TemplateSectionRecord; canEdit: boolean }) {
   const livePreview = useLivePreview();
   const content = section.default_content as Record<string, unknown>;
-  const label = labelFor(section);
+  const label = customerSectionLabel(section);
   const hasItems = Array.isArray(content.items);
   const hasImage = content.image && typeof content.image === "object";
   const image = hasImage ? content.image as Record<string, unknown> : null;
@@ -142,7 +108,7 @@ function SectionEditor({ siteId, section, canEdit }: { siteId: string; section: 
       <div>
         <p className="text-xs font-bold uppercase tracking-[0.16em] text-brand-700">Editing</p>
         <h2 className="mt-1 text-xl font-bold text-ink [text-wrap:balance]">{label}</h2>
-        <p className="mt-1 text-sm text-muted [text-wrap:pretty]">{descriptions[label]}</p>
+        <p className="mt-1 text-sm text-muted [text-wrap:pretty]">{customerSectionDescriptions[label]}</p>
       </div>
 
       {content.eyebrow !== undefined ? <Field label="Small label"><input className={inputClassName} name="eyebrow" defaultValue={text(content.eyebrow)} disabled={!canEdit} /></Field> : null}
@@ -159,8 +125,8 @@ function SectionEditor({ siteId, section, canEdit }: { siteId: string; section: 
       {content.location !== undefined ? <Field label="Address"><textarea className={inputClassName} name="location" rows={3} defaultValue={text(content.location)} /></Field> : null}
       {content.summary !== undefined ? <Field label="Short description"><textarea className={inputClassName} name="body" rows={3} defaultValue={text(content.summary)} /></Field> : null}
 
-      <button type="button" onClick={() => setAdvanced((value) => !value)} className="min-h-11 text-left text-sm font-bold text-brand-700">{advanced ? "Hide Advanced Settings" : "Switch to Advanced Mode"}</button>
-      {advanced ? <div className="rounded-xl bg-canvas p-3 text-sm text-muted"><p className="font-bold text-ink">Advanced Settings</p><p className="mt-1">Section visibility, layout choices, ordering, SEO, version history, and reset controls remain available in Settings.</p></div> : null}
+      <button type="button" onClick={() => setAdvanced((value) => !value)} className="min-h-11 text-left text-sm font-bold text-brand-700">{advanced ? "Hide Advanced Settings" : "Need more control? Open Advanced Settings"}</button>
+      {advanced ? <div className="grid gap-2 rounded-xl bg-canvas p-3 text-sm"><ButtonLink href={`/dashboard/websites/${siteId}/editor/sections`} variant="secondary" className="w-full">Section visibility, order, and reset</ButtonLink><ButtonLink href={`/dashboard/websites/${siteId}/design`} variant="secondary" className="w-full">Try another section layout</ButtonLink><ButtonLink href={`/dashboard/websites/${siteId}/seo`} variant="secondary" className="w-full">Google Search Setup</ButtonLink><ButtonLink href={`/dashboard/websites/${siteId}/settings/advanced`} variant="secondary" className="w-full">Version history</ButtonLink></div> : null}
       <Button type="submit" disabled={!canEdit} className="w-full">Save Section</Button>
     </form>
   );
@@ -175,16 +141,15 @@ export function ContentTab({ siteId, context, searchParams }: { siteId: string; 
     if (initialSection && !livePreview?.selectedSectionId) livePreview?.selectSection(initialSection.id);
   }, [initialSection, livePreview]);
 
-  const selected = sections.find((section) => section.id === livePreview?.selectedSectionId) ?? initialSection;
-  if (selected) return <SectionEditor key={selected.id} siteId={siteId} section={selected} canEdit={context.canEdit} />;
-
   const homeSections = sections.filter((section) => section.page_slug === (searchParams?.page ?? "home"));
+  const selected = sections.find((section) => section.id === livePreview?.selectedSectionId) ?? initialSection;
   return (
     <div className="grid gap-4">
-      <div><h2 className="text-xl font-bold text-ink [text-wrap:balance]">Click your website to start</h2><p className="mt-1 text-sm text-muted [text-wrap:pretty]">Or choose a section below. You will only see the fields that matter.</p></div>
-      <div className="overflow-hidden rounded-xl bg-white shadow-[0_10px_30px_rgba(24,33,31,0.08),inset_0_0_0_1px_rgba(0,0,0,0.06)]">
-        {homeSections.map((section) => <button key={section.id} type="button" onClick={() => livePreview?.selectSection(section.id)} className="flex min-h-14 w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-canvas active:bg-brand-50"><span><span className="block text-sm font-bold text-ink">{labelFor(section)}</span><span className="mt-0.5 block text-xs text-muted">{descriptions[labelFor(section)]}</span></span><ChevronRight size={17} className="shrink-0 text-muted" /></button>)}
+      <div><h2 className="text-xl font-bold text-ink [text-wrap:balance]">Website sections</h2><p className="mt-1 text-sm text-muted [text-wrap:pretty]">Choose a section here or click it in the preview.</p></div>
+      <div className="max-h-64 overflow-y-auto rounded-xl bg-white shadow-[0_10px_30px_rgba(24,33,31,0.08),inset_0_0_0_1px_rgba(0,0,0,0.06)]">
+        {homeSections.map((section) => { const active = selected?.id === section.id; const label = customerSectionLabel(section); return <button key={section.id} data-editor-list-section-id={section.id} type="button" onClick={() => livePreview?.selectSection(section.id)} className={`flex min-h-14 w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors active:bg-brand-50 ${active ? "bg-brand-50" : "hover:bg-canvas"}`}><span><span className="block text-sm font-bold text-ink">{label}</span><span className="mt-0.5 block text-xs text-muted">{customerSectionDescriptions[label]}</span></span><ChevronRight size={17} className={`shrink-0 ${active ? "text-brand-700" : "text-muted"}`} /></button>; })}
       </div>
+      {selected ? <div className="border-t border-line pt-4"><SectionEditor key={selected.id} siteId={siteId} section={selected} canEdit={context.canEdit} /></div> : null}
     </div>
   );
 }

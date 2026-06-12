@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { emptySettingsSchema, getSectionSchema } from "@/lib/site-renderer/section-schemas";
 import type { SectionComponentProps, TemplateSectionRecord } from "@/lib/site-renderer/template-types";
 import { sectionRegistry } from "@/components/site-renderer/section-registry";
+import { customerSectionLabel } from "@/lib/site-editor/section-labels";
 
 function getVariantKey(section: TemplateSectionRecord) {
   const variant = Array.isArray(section.section_variants) ? section.section_variants[0] : section.section_variants;
@@ -22,28 +23,6 @@ function SectionFallback({ title, detail }: { title: string; detail: string }) {
     </section>
   );
 }
-
-const sectionLabels: Record<string, string> = {
-  "header-topbar-standard": "Header",
-  "header-clean": "Header",
-  "hero-split-image": "Hero Banner",
-  "hero-background-overlay": "Hero Banner",
-  "hero-minimal-services": "Hero Banner",
-  "service-highlights-row": "Highlights",
-  "about-image-left": "About Us",
-  "about-image-right": "About Us",
-  "services-card-grid": "Services",
-  "services-icon-grid": "Services",
-  "services-alternating-rows": "Services",
-  "why-choose-us-grid": "Highlights",
-  "project-gallery-grid": "Projects",
-  "testimonials-cards": "Customer Reviews",
-  "faq-accordion": "Questions",
-  "contact-cta-banner": "Contact",
-  "contact-map-form": "Contact",
-  "footer-standard": "Footer",
-  "floating-whatsapp": "WhatsApp Button"
-};
 
 export function PageRenderer({
   pageSlug,
@@ -85,6 +64,7 @@ export function PageRenderer({
           return (
             <div
               key={section.id}
+              data-editor-section-id={section.id}
               data-editor-section={section.section_key}
               data-section-type={section.section_variants && !Array.isArray(section.section_variants) ? section.section_variants.section_type : section.section_key}
               data-editable-fields="content"
@@ -94,10 +74,10 @@ export function PageRenderer({
               <button
                 type="button"
                 className={`absolute left-3 top-3 z-20 flex min-h-10 items-center gap-2 rounded-full bg-white px-3 py-2 text-xs font-bold text-ink shadow-[0_8px_24px_rgba(24,33,31,0.18)] transition-[opacity,transform] duration-150 active:scale-[0.96] ${selected ? "opacity-100" : "opacity-0 group-hover/editor:opacity-100 group-focus-within/editor:opacity-100"}`}
-                aria-label={`Edit ${sectionLabels[section.section_key] ?? "section"}`}
+                aria-label={`Edit ${customerSectionLabel(section)}`}
               >
                 <Pencil size={14} aria-hidden="true" />
-                {sectionLabels[section.section_key] ?? "Section"}
+                {customerSectionLabel(section)}
                 <span className="text-brand-700">Edit</span>
               </button>
               {rendered}

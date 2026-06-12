@@ -7,6 +7,7 @@ import type { Site, SiteVersion } from "@/lib/types";
 export type PublicSitePayload = {
   site: Site;
   preview: LoadedTemplatePreview;
+  metadataAssets: { favicon?: string; socialShare?: string };
 };
 
 function objectValue(value: unknown): Record<string, unknown> {
@@ -63,23 +64,30 @@ export async function loadPublicSite(subdomain: string, pageSlug = "home", leadS
 
   return {
     site,
-    preview: injectPublicFormMetadata(merged.preview, site, pageSlug, leadStatus)
+    preview: injectPublicFormMetadata(merged.preview, site, pageSlug, leadStatus),
+    metadataAssets: {
+      favicon: media.find((item) => item.usage_type === "favicon")?.signed_url,
+      socialShare: media.find((item) => item.usage_type === "social-share")?.signed_url
+    }
   };
 }
 
-export function publicSiteMetadata(site: Site) {
+export function publicSiteMetadata(site: Site, assets: PublicSitePayload["metadataAssets"] = {}) {
   const title = site.seo_title || site.og_title || site.name;
   const description = site.seo_description || site.og_description || undefined;
   return {
     title,
     description,
+    verification: site.google_verification_token ? { google: site.google_verification_token } : undefined,
+    icons: assets.favicon ? { icon: assets.favicon } : undefined,
     robots: {
       index: site.robots_index,
       follow: site.robots_follow
     },
     openGraph: {
       title: site.og_title || title,
-      description
+      description,
+      images: assets.socialShare ? [assets.socialShare] : undefined
     }
   };
 }
