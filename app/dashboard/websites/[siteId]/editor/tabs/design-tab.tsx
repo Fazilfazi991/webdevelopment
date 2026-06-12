@@ -1,169 +1,47 @@
+import { CheckCircle2, Eye, LayoutTemplate, Palette } from "lucide-react";
 import { saveThemeAction } from "@/app/editor-actions";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Field, inputClassName } from "@/components/ui/field";
+import { Button, ButtonLink } from "@/components/ui/button";
 import type { loadEditorContext } from "@/lib/site-editor/editor-loader";
 
-const APPROVED_SWATCHES = [
-  { hex: "#0f766e", name: "Teal" },
-  { hex: "#14532d", name: "Forest Green" },
-  { hex: "#1d4ed8", name: "Royal Blue" },
-  { hex: "#334155", name: "Slate" },
-  { hex: "#7c2d12", name: "Burnt Orange" }
+const colours = [
+  { value: "#0f766e", label: "Teal" },
+  { value: "#14532d", label: "Forest" },
+  { value: "#1d4ed8", label: "Blue" },
+  { value: "#334155", label: "Slate" },
+  { value: "#7c2d12", label: "Terracotta" }
 ];
 
-export function DesignTab({
-  siteId,
-  context
-}: {
-  siteId: string;
-  context: Awaited<ReturnType<typeof loadEditorContext>>;
-}) {
+export function DesignTab({ siteId, context }: { siteId: string; context: Awaited<ReturnType<typeof loadEditorContext>> }) {
   const theme = context.themeOverride;
-
   return (
-    <div className="grid gap-4">
-      <Card className="p-4">
-        <h2 className="font-bold text-ink">Design</h2>
-        <p className="mt-1 text-sm leading-6 text-muted">
-          Adjust approved colours, fonts, and style presets. Custom CSS is not available.
-        </p>
-        <form action={saveThemeAction} className="mt-4 grid gap-4">
-          <input type="hidden" name="siteId" value={siteId} />
+    <div className="grid gap-5">
+      <div className="rounded-lg border border-line bg-canvas p-4">
+        <div className="flex items-start gap-3"><span className="flex size-10 items-center justify-center rounded-lg bg-brand-50 text-brand-700"><LayoutTemplate size={20} /></span><div className="min-w-0 flex-1"><p className="text-xs font-bold uppercase tracking-widest text-muted">Current design</p><h3 className="mt-1 font-bold text-ink">Technical Services Modern</h3></div></div>
+        <div className="mt-4 grid grid-cols-2 gap-2"><ButtonLink href={`/dashboard/websites/${siteId}/preview`} variant="secondary"><Eye size={16} />Preview Design</ButtonLink><ButtonLink href={`/dashboard/websites/${siteId}/setup/templates`} variant="secondary"><Palette size={16} />Other Designs</ButtonLink></div>
+      </div>
 
-          <Field label="Theme preset">
-            <select className={inputClassName} disabled>
-              <option>Modern Corporate</option>
-            </select>
-          </Field>
+      <form action={saveThemeAction} className="grid gap-5">
+        <input type="hidden" name="siteId" value={siteId} />
+        <input type="hidden" name="secondaryColor" value={theme?.secondary_color ?? "#d8c3a5"} />
+        <input type="hidden" name="accentColor" value={theme?.accent_color ?? "#134e4a"} />
 
-          {/* Colour swatches for quick reference */}
-          <div className="grid gap-2">
-            <p className="text-xs font-bold uppercase tracking-widest text-muted">Approved colours</p>
-            <div className="flex flex-wrap gap-2">
-              {APPROVED_SWATCHES.map((swatch) => (
-                <span
-                  key={swatch.hex}
-                  className="size-9 rounded-app border border-line shadow-sm"
-                  style={{ background: swatch.hex }}
-                  title={`${swatch.name} ${swatch.hex}`}
-                />
-              ))}
-            </div>
-          </div>
+        <fieldset disabled={!context.canEdit} className="grid gap-3"><legend className="text-sm font-bold text-ink">Brand Colour</legend><div className="flex flex-wrap gap-3">{colours.map((colour) => <label key={colour.value} className="cursor-pointer text-center"><input className="peer sr-only" type="radio" name="primaryColor" value={colour.value} defaultChecked={(theme?.primary_color ?? "#0f766e").toLowerCase() === colour.value} /><span className="flex size-11 items-center justify-center rounded-full border-4 border-white shadow ring-1 ring-line peer-checked:ring-4 peer-checked:ring-brand-200" style={{ backgroundColor: colour.value }} /><span className="mt-1 block text-[10px] font-semibold text-muted">{colour.label}</span></label>)}</div></fieldset>
 
-          <Field label="Primary colour">
-            <div className="flex gap-2">
-              <input
-                type="color"
-                className="h-11 w-12 cursor-pointer rounded-app border border-line p-1"
-                defaultValue={theme?.primary_color ?? "#0f766e"}
-                onChange={() => {}}
-                disabled={!context.canEdit}
-                aria-label="Primary colour picker"
-              />
-              <input
-                className={inputClassName}
-                name="primaryColor"
-                defaultValue={theme?.primary_color ?? "#0f766e"}
-                pattern="^#[0-9A-Fa-f]{6}$"
-                placeholder="#0f766e"
-                disabled={!context.canEdit}
-              />
-            </div>
-          </Field>
+        <fieldset disabled={!context.canEdit} className="grid gap-2"><legend className="text-sm font-bold text-ink">Font Style</legend><div className="grid grid-cols-3 gap-2">{[
+          ["modern_clean", "Modern"], ["professional_sans", "Professional"], ["classic_corporate", "Elegant"]
+        ].map(([value,label]) => <label key={value}><input className="peer sr-only" type="radio" name="fontPreset" value={value} defaultChecked={(theme?.font_preset ?? "professional_sans") === value} /><span className="flex min-h-12 cursor-pointer items-center justify-center rounded-lg border border-line px-2 text-xs font-bold text-muted peer-checked:border-brand-600 peer-checked:bg-brand-50 peer-checked:text-brand-800">{label}</span></label>)}</div></fieldset>
 
-          <Field label="Secondary colour">
-            <div className="flex gap-2">
-              <input
-                type="color"
-                className="h-11 w-12 cursor-pointer rounded-app border border-line p-1"
-                defaultValue={theme?.secondary_color ?? "#d8c3a5"}
-                onChange={() => {}}
-                disabled={!context.canEdit}
-                aria-label="Secondary colour picker"
-              />
-              <input
-                className={inputClassName}
-                name="secondaryColor"
-                defaultValue={theme?.secondary_color ?? "#d8c3a5"}
-                pattern="^#[0-9A-Fa-f]{6}$"
-                placeholder="#d8c3a5"
-                disabled={!context.canEdit}
-              />
-            </div>
-          </Field>
+        <fieldset disabled={!context.canEdit} className="grid gap-2"><legend className="text-sm font-bold text-ink">Button Style</legend><div className="grid grid-cols-3 gap-2">{[
+          ["pill", "Rounded"], ["soft_rounded", "Soft"], ["square", "Square"]
+        ].map(([value,label]) => <label key={value}><input className="peer sr-only" type="radio" name="buttonStyle" value={value} defaultChecked={(theme?.button_style ?? "soft_rounded") === value} /><span className="flex min-h-12 cursor-pointer items-center justify-center rounded-lg border border-line px-2 text-xs font-bold text-muted peer-checked:border-brand-600 peer-checked:bg-brand-50 peer-checked:text-brand-800">{label}</span></label>)}</div></fieldset>
 
-          <Field label="Accent colour">
-            <div className="flex gap-2">
-              <input
-                type="color"
-                className="h-11 w-12 cursor-pointer rounded-app border border-line p-1"
-                defaultValue={theme?.accent_color ?? "#134e4a"}
-                onChange={() => {}}
-                disabled={!context.canEdit}
-                aria-label="Accent colour picker"
-              />
-              <input
-                className={inputClassName}
-                name="accentColor"
-                defaultValue={theme?.accent_color ?? "#134e4a"}
-                pattern="^#[0-9A-Fa-f]{6}$"
-                placeholder="#134e4a"
-                disabled={!context.canEdit}
-              />
-            </div>
-          </Field>
+        <fieldset disabled={!context.canEdit} className="grid gap-2"><legend className="text-sm font-bold text-ink">Spacing</legend><div className="grid grid-cols-3 gap-2">{[
+          ["minimal", "Compact"], ["balanced", "Comfortable"], ["rounded", "Spacious"]
+        ].map(([value,label]) => <label key={value}><input className="peer sr-only" type="radio" name="radiusPreset" value={value} defaultChecked={(theme?.radius_preset ?? "balanced") === value} /><span className="flex min-h-12 cursor-pointer items-center justify-center rounded-lg border border-line px-2 text-xs font-bold text-muted peer-checked:border-brand-600 peer-checked:bg-brand-50 peer-checked:text-brand-800">{label}</span></label>)}</div></fieldset>
 
-          <Field label="Font preset">
-            <select
-              className={inputClassName}
-              name="fontPreset"
-              defaultValue={theme?.font_preset ?? "professional_sans"}
-              disabled={!context.canEdit}
-            >
-              <option value="professional_sans">Professional Sans</option>
-              <option value="modern_clean">Modern Clean</option>
-              <option value="classic_corporate">Classic Corporate</option>
-              <option value="friendly_local">Friendly Local</option>
-            </select>
-          </Field>
-
-          <Field label="Button style">
-            <select
-              className={inputClassName}
-              name="buttonStyle"
-              defaultValue={theme?.button_style ?? "soft_rounded"}
-              disabled={!context.canEdit}
-            >
-              <option value="square">Square</option>
-              <option value="soft_rounded">Soft Rounded</option>
-              <option value="pill">Pill</option>
-            </select>
-          </Field>
-
-          <Field label="Radius preset">
-            <select
-              className={inputClassName}
-              name="radiusPreset"
-              defaultValue={theme?.radius_preset ?? "balanced"}
-              disabled={!context.canEdit}
-            >
-              <option value="minimal">Minimal</option>
-              <option value="balanced">Balanced</option>
-              <option value="rounded">Rounded</option>
-            </select>
-          </Field>
-
-          <p className="rounded-app bg-canvas p-3 text-sm text-muted">
-            Use darker primary colours for readable buttons and sufficient contrast.
-          </p>
-
-          <Button type="submit" disabled={!context.canEdit}>
-            Save design
-          </Button>
-        </form>
-      </Card>
+        <p className="flex gap-2 rounded-lg bg-emerald-50 p-3 text-sm leading-6 text-emerald-900"><CheckCircle2 className="mt-1 shrink-0" size={17} />Your content, images and contact details stay the same when you change the website style.</p>
+        <Button type="submit" disabled={!context.canEdit}>Save Website Style</Button>
+      </form>
     </div>
   );
 }

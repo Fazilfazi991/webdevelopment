@@ -184,12 +184,16 @@ export async function saveSectionContentAction(formData: FormData) {
   });
   if (!input.success) redirect(`/dashboard/websites?error=${encodeURIComponent(input.error.errors[0].message)}`);
   const { supabase, site, user } = await requireEditableSite(input.data.siteId, "edit_content");
+  const requestedReturnPath = value(formData, "returnPath");
+  const expectedEditorPath = `/dashboard/websites/${site.id}/editor/pages`;
+  const returnPath = requestedReturnPath.startsWith(expectedEditorPath) ? requestedReturnPath : expectedEditorPath;
+  const statusPath = (key: "message" | "error", message: string) => `${returnPath}${returnPath.includes("?") ? "&" : "?"}${key}=${encodeURIComponent(message)}`;
   const schema = getSectionSchema(input.data.sectionKey);
   const patch = sectionContentFromForm(formData);
   const current = await loadEditorContext(supabase, site.id, true);
   const section = current.previewResult.status === "ready" ? current.previewResult.preview.sections.find((item) => item.id === input.data.sectionId) : null;
   const merged = mergeObjects(section?.default_content, patch);
-  if (!schema?.safeParse(merged).success) redirect(`/dashboard/websites/${site.id}/editor/content?error=Check the section fields and keep text within the suggested limits.`);
+  if (!schema?.safeParse(merged).success) redirect(statusPath("error", "Check the section fields and keep text within the suggested limits."));
 
   const { error } = await supabase.from("site_section_overrides").upsert(
     {
@@ -203,9 +207,9 @@ export async function saveSectionContentAction(formData: FormData) {
     },
     { onConflict: "site_id,template_section_id" }
   );
-  if (error) redirect(`/dashboard/websites/${site.id}/editor/content?error=Could not save section content.`);
+  if (error) redirect(statusPath("error", "Could not save this section."));
   revalidatePath(`/dashboard/websites/${site.id}`);
-  redirect(`/dashboard/websites/${site.id}/editor/content?message=Section saved.`);
+  redirect(statusPath("message", "Changes saved."));
 }
 
 export async function saveSectionStateAction(formData: FormData) {

@@ -1,123 +1,22 @@
+import { ArrowLeft, ExternalLink, Globe2, Save } from "lucide-react";
 import Link from "next/link";
-import {
-  ArrowLeft,
-  ExternalLink,
-  Globe2,
-  Image as ImageIcon,
-  Layout,
-  Monitor,
-  Palette,
-  Save,
-  Settings,
-  Smartphone,
-  Tablet
-} from "lucide-react";
 import { saveVersionAction } from "@/app/editor-actions";
+import { publishWebsiteAction } from "@/app/publishing-actions";
 import { StatusMessage } from "@/app/auth/status-message";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { SiteRenderer } from "@/components/site-renderer/site-renderer";
+import { hasPermission } from "@/lib/access-control";
 import { applyEditorMerges, loadEditorContext } from "@/lib/site-editor/editor-loader";
 import { requireSiteSetup } from "@/lib/setup";
-import { hasPermission } from "@/lib/access-control";
-import { cn } from "@/lib/utils";
+import { hasUnpublishedChanges } from "@/app/dashboard/websites/website-card-state";
 import { ContentTab } from "@/app/dashboard/websites/[siteId]/editor/tabs/content-tab";
-import { ImagesTab } from "@/app/dashboard/websites/[siteId]/editor/tabs/images-tab";
 import { DesignTab } from "@/app/dashboard/websites/[siteId]/editor/tabs/design-tab";
+import { ImagesTab } from "@/app/dashboard/websites/[siteId]/editor/tabs/images-tab";
 import { SectionsTab } from "@/app/dashboard/websites/[siteId]/editor/tabs/sections-tab";
 import { SettingsTab } from "@/app/dashboard/websites/[siteId]/editor/tabs/settings-tab";
-import { hasUnpublishedChanges } from "@/app/dashboard/websites/website-card-state";
-import { publishWebsiteAction } from "@/app/publishing-actions";
-
-const TABS = [
-  { key: "pages", label: "Pages", icon: Layout },
-  { key: "design", label: "Design", icon: Palette },
-  { key: "images", label: "Images", icon: ImageIcon },
-  { key: "settings", label: "Settings", icon: Settings },
-  { key: "sections", label: "Sections", icon: Layout }
-] as const;
-
-type TabKey = (typeof TABS)[number]["key"];
-
-function SaveBar({
-  siteId,
-  canEdit,
-  isPublished,
-  hasChanges
-}: {
-  siteId: string;
-  canEdit: boolean;
-  isPublished: boolean;
-  hasChanges: boolean;
-}) {
-  if (!canEdit) {
-    return (
-      <span className="rounded-app bg-canvas px-3 py-2 text-sm font-semibold text-muted">
-        Preview only
-      </span>
-    );
-  }
-
-  if (isPublished && !hasChanges) {
-    return (
-      <span className="rounded-app bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">
-        <Globe2 className="inline mr-1" size={14} />
-        Live and up to date
-      </span>
-    );
-  }
-
-  if (isPublished && hasChanges) {
-    return (
-      <>
-        <span className="rounded-app bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-700">
-          Unsaved changes
-        </span>
-        <form action={saveVersionAction}>
-          <input type="hidden" name="siteId" value={siteId} />
-          <Button type="submit" variant="secondary">
-            <Save size={15} />
-            Save Draft
-          </Button>
-        </form>
-        <form action={publishWebsiteAction}>
-          <input type="hidden" name="siteId" value={siteId} />
-          <Button type="submit">
-            <Globe2 size={15} />
-            Publish Updates
-          </Button>
-        </form>
-      </>
-    );
-  }
-
-  // Draft (never published)
-  return (
-    <>
-      <span className="rounded-app bg-canvas px-3 py-2 text-sm font-semibold text-muted">
-        Draft
-      </span>
-      <form action={saveVersionAction}>
-        <input type="hidden" name="siteId" value={siteId} />
-        <Button type="submit">
-          <Save size={15} />
-          Save Draft
-        </Button>
-      </form>
-      <form action={publishWebsiteAction}>
-        <input type="hidden" name="siteId" value={siteId} />
-        <Button type="submit" variant="secondary">
-          <Globe2 size={15} />
-          Publish Website
-        </Button>
-      </form>
-    </>
-  );
-}
 
 export async function EditorShell({
-  siteId,
-  activeTab,
-  searchParams
+  siteId, activeTab, searchParams
 }: {
   siteId: string;
   activeTab: string;
@@ -128,203 +27,46 @@ export async function EditorShell({
   const canUpload = hasPermission(setup.siteAccess, "upload_media", setup.membershipRole);
   const canDesign = hasPermission(setup.siteAccess, "edit_design", setup.membershipRole);
   const canSections = hasPermission(setup.siteAccess, "manage_sections", setup.membershipRole);
-
+  const canPublish = hasPermission(setup.siteAccess, "publish_site", setup.membershipRole);
   const context = await loadEditorContext(setup.supabase, setup.site.id, canEdit);
   const merged = applyEditorMerges(context);
-
   const isPublished = setup.site.publication_status === "published";
   const hasChanges = hasUnpublishedChanges(setup.site);
-
-  // Filter allowed tabs
-  const allowedTabs = TABS.filter((tab) => {
-    if (tab.key === "pages") return canEdit;
-    if (tab.key === "images") return canUpload;
-    if (tab.key === "design") return canDesign;
-    if (tab.key === "sections") return canSections;
-    if (tab.key === "settings") return canEdit;
-    return true;
-  });
-
-  const resolvedTab = (allowedTabs.some((t) => t.key === activeTab) ? activeTab : "pages") as TabKey;
-
-  const isClientAccess = Boolean(setup.siteAccess);
-  const editorBase = isClientAccess
-    ? `/client/websites/${setup.site.id}/editor`
-    : `/dashboard/websites/${setup.site.id}/editor`;
-  const previewHref = isClientAccess
-    ? `/client/websites/${setup.site.id}/preview`
-    : `/dashboard/websites/${setup.site.id}/preview`;
-  const backHref = isClientAccess ? `/client/websites/${setup.site.id}` : "/dashboard/websites";
-
-  // Device preview class
-  const deviceClass =
-    searchParams.device === "mobile"
-      ? "max-w-[390px]"
-      : searchParams.device === "tablet"
-      ? "max-w-[768px]"
-      : "w-full";
+  const base = `/dashboard/websites/${setup.site.id}`;
+  const resolvedTab = activeTab === "design" && canDesign ? "design" : activeTab === "images" && canUpload ? "images" : activeTab === "settings" && canEdit ? "settings" : activeTab === "sections" && canSections ? "sections" : "pages";
+  const selectedPage = searchParams.page ?? "home";
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-canvas">
-      {/* ── Top Bar ────────────────────────────────────────────────────────── */}
-      <header className="z-40 flex shrink-0 items-center gap-2 border-b border-line bg-white/95 px-3 py-2 backdrop-blur sm:gap-3 sm:px-4">
-        {/* Left: back + site name */}
-        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-          <ButtonLink href={backHref} variant="secondary" aria-label="Back to dashboard">
-            <ArrowLeft size={16} />
-            <span className="hidden sm:inline">Back</span>
-          </ButtonLink>
-          <div className="min-w-0">
-            <p className="hidden text-xs font-semibold uppercase tracking-widest text-muted sm:block">
-              Website editor
-            </p>
-            <h1 className="max-w-[160px] truncate text-sm font-bold text-ink sm:max-w-xs sm:text-base">
-              {setup.site.name}
-            </h1>
-          </div>
-        </div>
-
-        {/* Spacer */}
-        <div className="flex-1" />
-
-        {/* Right: save state + preview */}
-        <div className="flex shrink-0 items-center gap-2">
-          <SaveBar
-            siteId={setup.site.id}
-            canEdit={canEdit}
-            isPublished={isPublished}
-            hasChanges={hasChanges}
-          />
-          <ButtonLink href={previewHref} variant="secondary" aria-label="Open full preview">
-            <ExternalLink size={15} />
-            <span className="hidden sm:inline">Preview</span>
-          </ButtonLink>
-        </div>
+    <div className="mx-auto max-w-[1500px]">
+      <header className="sticky top-0 z-30 -mx-3 mb-5 flex flex-wrap items-center gap-3 border-b border-line bg-white/95 px-3 py-3 backdrop-blur sm:-mx-5 sm:px-5 lg:-mx-7 lg:px-7">
+        <ButtonLink href={base} variant="ghost" className="px-2"><ArrowLeft size={17} /><span className="hidden sm:inline">Back to Website</span></ButtonLink>
+        <div className="min-w-0 flex-1"><h1 className="truncate text-base font-bold text-ink">{setup.site.name}</h1><p className={`text-xs font-semibold ${isPublished && !hasChanges ? "text-emerald-700" : "text-amber-700"}`}>{isPublished && !hasChanges ? "Live and up to date" : hasChanges ? "Unpublished changes" : "Website draft"}</p></div>
+        <ButtonLink href={`${base}/preview`} variant="secondary"><ExternalLink size={16} /><span className="hidden sm:inline">Preview</span></ButtonLink>
+        {canPublish ? <form action={publishWebsiteAction}><input type="hidden" name="siteId" value={setup.site.id} /><Button type="submit"><Globe2 size={16} /><span className="hidden sm:inline">{isPublished ? "Publish Updates" : "Publish Website"}</span><span className="sm:hidden">Publish</span></Button></form> : null}
       </header>
 
-      {/* ── Body: Sidebar + Preview ────────────────────────────────────────── */}
-      <div className="flex min-h-0 flex-1 overflow-hidden">
-        {/* ── Sidebar ─────────────────────────────────────────────────── */}
-        <aside className="flex w-full shrink-0 flex-col overflow-hidden border-r border-line bg-white sm:w-80 lg:w-[340px] xl:w-[360px]">
-          {/* Tab navigation */}
-          <nav
-            className="grid shrink-0 border-b border-line px-2 py-2"
-            style={{ gridTemplateColumns: `repeat(${allowedTabs.length}, 1fr)` }}
-            aria-label="Editor tabs"
-          >
-            {allowedTabs.map((tab) => {
-              const Icon = tab.icon;
-              return (
-                <Link
-                  key={tab.key}
-                  href={`${editorBase}/${tab.key}`}
-                  className={cn(
-                    "flex flex-col items-center gap-1 rounded-app px-1 py-2 text-center text-xs font-semibold transition",
-                    resolvedTab === tab.key
-                      ? "bg-brand-700 text-white"
-                      : "text-muted hover:bg-canvas hover:text-ink"
-                  )}
-                  aria-current={resolvedTab === tab.key ? "page" : undefined}
-                >
-                  <Icon size={16} />
-                  {tab.label}
-                </Link>
-              );
-            })}
-          </nav>
+      <StatusMessage error={searchParams.error} message={searchParams.message} />
+      {!canEdit && resolvedTab === "pages" ? <div className="mb-4 rounded-lg border border-line bg-white p-4 text-sm text-muted">You can preview this website, but editing is not available with your current access.</div> : null}
 
-          {/* Tab content — scrollable */}
-          <div className="min-h-0 flex-1 overflow-y-auto p-3">
-            <StatusMessage error={searchParams.error} message={searchParams.message} />
-            {!canEdit && resolvedTab !== "design" && resolvedTab !== "sections" ? (
-              <div className="mb-3 rounded-app bg-canvas p-3 text-sm text-muted">
-                You can view and preview, but editing is not available with your current access.
-              </div>
-            ) : null}
-
-            {resolvedTab === "pages" && (
-              <ContentTab siteId={setup.site.id} context={context} searchParams={searchParams} />
-            )}
-            {resolvedTab === "images" && (
-              <ImagesTab
-                siteId={setup.site.id}
-                organizationId={setup.organization.id}
-                context={context}
-              />
-            )}
-            {resolvedTab === "design" && (
-              <DesignTab siteId={setup.site.id} context={context} />
-            )}
-            {resolvedTab === "settings" && (
-              <SettingsTab siteId={setup.site.id} site={setup.site} context={context} />
-            )}
-            {resolvedTab === "sections" && (
-              <SectionsTab siteId={setup.site.id} context={context} />
-            )}
+      <div className="grid gap-5 lg:grid-cols-[400px_minmax(0,1fr)] lg:items-start">
+        <section className="min-w-0 rounded-xl border border-line bg-white p-4 shadow-soft sm:p-5">
+          <div className="mb-5">
+            <p className="text-xs font-bold uppercase tracking-widest text-brand-700">{resolvedTab === "design" ? "Website Style" : resolvedTab === "settings" ? "Website Settings" : resolvedTab === "images" ? "Photos & Images" : "Edit Website"}</p>
+            <h2 className="mt-2 text-xl font-bold text-ink">{resolvedTab === "pages" ? (searchParams.section ? "Update this section" : searchParams.page ? "Choose a section to update" : "Choose a page to update") : resolvedTab === "design" ? "Choose how your website should look" : "Update this website"}</h2>
+            {resolvedTab === "pages" ? <p className="mt-1 text-sm text-muted">Work through one page and one section at a time.</p> : null}
           </div>
+          {resolvedTab === "pages" ? <ContentTab siteId={setup.site.id} context={context} searchParams={searchParams} /> : null}
+          {resolvedTab === "design" ? <DesignTab siteId={setup.site.id} context={context} /> : null}
+          {resolvedTab === "images" ? <ImagesTab siteId={setup.site.id} organizationId={setup.organization.id} context={context} /> : null}
+          {resolvedTab === "settings" ? <SettingsTab siteId={setup.site.id} site={setup.site} context={context} /> : null}
+          {resolvedTab === "sections" ? <SectionsTab siteId={setup.site.id} context={context} /> : null}
+          {canEdit && resolvedTab === "pages" ? <form action={saveVersionAction} className="mt-5 border-t border-line pt-4"><input type="hidden" name="siteId" value={setup.site.id} /><Button type="submit" variant="secondary" className="w-full"><Save size={16} />Save Website Draft</Button></form> : null}
+        </section>
 
-          {/* Mobile: Preview button */}
-          <div className="shrink-0 border-t border-line p-3 sm:hidden">
-            <ButtonLink href={previewHref} variant="secondary" className="w-full justify-center">
-              <ExternalLink size={16} />
-              Preview Website
-            </ButtonLink>
-          </div>
-        </aside>
-
-        {/* ── Live Preview ─────────────────────────────────────────────── */}
-        <section className="hidden min-w-0 flex-1 flex-col overflow-hidden sm:flex">
-          {/* Device toggle + label */}
-          <div className="flex shrink-0 items-center justify-between gap-2 border-b border-line bg-white/80 px-4 py-2 backdrop-blur">
-            <p className="text-xs font-semibold text-muted">
-              Live preview updates after saving.
-            </p>
-            <div className="flex gap-1 rounded-app border border-line bg-white p-1">
-              {[
-                { key: "desktop", icon: Monitor, label: "Desktop" },
-                { key: "tablet", icon: Tablet, label: "Tablet" },
-                { key: "mobile", icon: Smartphone, label: "Mobile" }
-              ].map((device) => {
-                const Icon = device.icon;
-                const isActive =
-                  searchParams.device === device.key ||
-                  (!searchParams.device && device.key === "desktop");
-                return (
-                  <ButtonLink
-                    key={device.key}
-                    href={`${editorBase}/${resolvedTab}?device=${device.key}`}
-                    variant={isActive ? "primary" : "ghost"}
-                    aria-label={`${device.label} preview`}
-                    aria-pressed={isActive}
-                  >
-                    <Icon size={16} />
-                  </ButtonLink>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Preview viewport */}
-          <div className="flex min-h-0 flex-1 items-start justify-center overflow-auto bg-[#f0f0f0] p-4">
-            <div
-              className={cn(
-                "min-h-full overflow-x-hidden rounded-lg bg-white shadow-xl transition-all duration-300 [&_.fixed]:absolute",
-                deviceClass
-              )}
-            >
-              {merged.status === "ready" ? (
-                <SiteRenderer preview={merged.preview} pageSlug="home" />
-              ) : (
-                <div className="flex min-h-[400px] items-center justify-center p-8 text-center">
-                  <div>
-                    <h2 className="text-lg font-bold text-ink">Choose a design template first</h2>
-                    <p className="mt-2 text-sm text-muted">
-                      The preview becomes available after a template is selected.
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
+        <section className="hidden min-w-0 lg:block">
+          <div className="sticky top-24 overflow-hidden rounded-xl border border-line bg-white shadow-soft">
+            <div className="flex items-center justify-between border-b border-line px-4 py-3"><div><p className="text-sm font-bold text-ink">Website preview</p><p className="text-xs text-muted">Updates after saving</p></div><Link href={`${base}/preview`} className="text-sm font-bold text-brand-700">Open full preview</Link></div>
+            <div className="max-h-[calc(100vh-180px)] overflow-auto bg-[#edf1ef] p-4"><div className="mx-auto min-h-[620px] overflow-hidden rounded-lg bg-white shadow-lg">{merged.status === "ready" ? <SiteRenderer preview={merged.preview} pageSlug={selectedPage} /> : <div className="flex min-h-[500px] items-center justify-center p-8 text-center"><div><h3 className="font-bold text-ink">Choose a design first</h3><p className="mt-2 text-sm text-muted">The website preview will appear here.</p></div></div>}</div></div>
           </div>
         </section>
       </div>

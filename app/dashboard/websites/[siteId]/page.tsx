@@ -92,11 +92,11 @@ export default async function WebsiteOverviewPage({ params }: { params: { siteId
     { label: "Edit Website", href: `${baseUrl}/editor`, icon: Pencil },
     { label: "Design", href: `${baseUrl}/editor/design`, icon: Palette },
     { label: "Pages", href: `${baseUrl}/editor/sections`, icon: FileText },
-    { label: "Photos", href: `/dashboard/media?site=${site.id}`, icon: ImageIcon },
+    { label: "Photos", href: `${baseUrl}/media`, icon: ImageIcon },
     { label: "Enquiries", href: `${baseUrl}/leads`, icon: MessageSquareText },
-    { label: "Google Search Setup", href: `${baseUrl}/editor/settings`, icon: Search },
+    { label: "Google Search Setup", href: `${baseUrl}/seo`, icon: Search },
     { label: "Blog", href: baseUrl, icon: FileText, locked: true },
-    { label: "Settings", href: `${baseUrl}/editor/settings`, icon: Settings }
+    { label: "Settings", href: `${baseUrl}/settings`, icon: Settings }
   ];
   const moreTools = [
     { label: "AI Chatbot", icon: Bot, locked: true },
@@ -106,16 +106,17 @@ export default async function WebsiteOverviewPage({ params }: { params: { siteId
     { label: "Team Access", icon: Users, locked: true }
   ];
   const quickActions = [
-    { label: "Update Photos", description: "Keep your gallery fresh", href: `/dashboard/media?site=${site.id}`, icon: ImageIcon },
+    { label: "Update Photos", description: "Keep your gallery fresh", href: `${baseUrl}/media`, icon: ImageIcon },
     { label: "Change Phone Number", description: "Update contact details", href: `${baseUrl}/editor/settings`, icon: Phone },
-    { label: "Add Service", description: "Tell customers what you offer", href: `${baseUrl}/editor/content`, icon: BriefcaseBusiness },
+    { label: "Add Service", description: "Tell customers what you offer", href: `${baseUrl}/editor/pages?page=services`, icon: BriefcaseBusiness },
     { label: "View Enquiries", description: "See and respond to leads", href: `${baseUrl}/leads`, icon: Mail },
-    { label: "Update Working Hours", description: "Keep opening hours current", href: `${baseUrl}/editor/settings`, icon: Clock3 }
+    { label: "Update Working Hours", description: "Keep opening hours current", href: `${baseUrl}/editor/settings`, icon: Clock3 },
+    { label: "Google Search Setup", description: "Help customers find you", href: `${baseUrl}/seo`, icon: Search }
   ];
 
   return (
     <div data-site-workspace className="mx-auto max-w-[1500px]">
-      <div className="mb-5 flex gap-2 overflow-x-auto pb-2 lg:hidden">
+      <div className="legacy-site-mobile-nav mb-5 flex gap-2 overflow-x-auto pb-2 lg:hidden">
         {navItems.filter((item) => !item.locked).map((item) => (
           <Link
             key={item.label}
@@ -129,8 +130,8 @@ export default async function WebsiteOverviewPage({ params }: { params: { siteId
         ))}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[230px_minmax(0,1fr)]">
-        <aside className="hidden self-start rounded-xl border border-line bg-white p-3 shadow-soft lg:sticky lg:top-6 lg:block">
+      <div className="legacy-site-grid grid gap-6 lg:grid-cols-[230px_minmax(0,1fr)]">
+        <aside className="legacy-site-sidebar hidden self-start rounded-xl border border-line bg-white p-3 shadow-soft lg:sticky lg:top-6 lg:block">
           <Link href="/dashboard" className="mb-4 flex items-center gap-3 px-2 py-1 text-lg font-bold text-ink">
             <span className="flex size-9 items-center justify-center rounded-lg bg-brand-700 text-white">S</span>
             Studio OS
@@ -245,7 +246,7 @@ export default async function WebsiteOverviewPage({ params }: { params: { siteId
 
           <section className="mt-6">
             <div className="flex items-end justify-between gap-3"><div><h2 className="text-lg font-bold text-ink">Quick actions</h2><p className="mt-1 text-sm text-muted">The updates customers need most often.</p></div><ButtonLink href={`${baseUrl}/editor/design`} variant="ghost" className="hidden sm:inline-flex"><Palette size={17} />Change Design</ButtonLink></div>
-            <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+            <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
               {quickActions.map((action) => (
                 <Link key={action.label} href={action.href} className="flex min-h-[112px] items-start gap-3 rounded-xl border border-line bg-white p-4 shadow-soft transition hover:border-brand-200 hover:bg-brand-50">
                   <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-700"><action.icon size={20} /></span>

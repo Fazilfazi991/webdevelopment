@@ -96,4 +96,36 @@ a {
   .app-shell:has([data-site-workspace]) .app-shell-desktop-header {
     display: none;
   }
+
+  .app-shell:has([data-site-workspace]) > div > header,
+  .app-shell:has([data-site-workspace]) > nav {
+    display: none;
+  }
+
+  .app-shell:has([data-site-workspace]) > div > main {
+    padding: 0;
+  }
+
+  [data-site-workspace] .legacy-site-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  [data-site-workspace] .legacy-site-sidebar {
+    display: none;
+  }
+}
+
+@media (max-width: 1023px) {
+  .app-shell:has([data-site-workspace]) > div > header,
+  .app-shell:has([data-site-workspace]) > nav {
+    display: none;
+  }
+
+  .app-shell:has([data-site-workspace]) > div > main {
+    padding: 0;
+  }
+}
+
+[data-site-workspace] .legacy-site-mobile-nav {
+  display: none;
 }

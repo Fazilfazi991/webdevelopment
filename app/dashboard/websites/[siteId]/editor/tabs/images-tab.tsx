@@ -28,9 +28,9 @@ const TEMPLATE_DEFAULTS: Partial<Record<SiteMedia["usage_type"], string>> = {
   hero: "/templates/technical-services-modern/hero.webp",
   about: "/templates/technical-services-modern/about.webp",
   "service:ac-maintenance": "/templates/technical-services-modern/services/ac-maintenance.webp",
-  "service:electrical": "/templates/technical-services-modern/services/electrical-services.webp",
-  "service:plumbing": "/templates/technical-services-modern/services/plumbing-solutions.webp",
-  "service:painting": "/templates/technical-services-modern/services/painting-services.webp",
+  "service:electrical": "/templates/technical-services-modern/services/electrical.webp",
+  "service:plumbing": "/templates/technical-services-modern/services/plumbing.webp",
+  "service:painting": "/templates/technical-services-modern/services/painting.webp",
   "service:interior-repairs": "/templates/technical-services-modern/services/interior-repairs.webp",
   "service:preventive-maintenance": "/templates/technical-services-modern/services/preventive-maintenance.webp",
   "gallery:project-01": "/templates/technical-services-modern/projects/project-01.webp",
@@ -62,6 +62,7 @@ function ImageSlotCard({
   templateDefault,
   recommendedDims,
   siteId,
+  organizationId,
   canEdit
 }: {
   slot: SiteMedia["usage_type"];
@@ -69,6 +70,7 @@ function ImageSlotCard({
   templateDefault: string | undefined;
   recommendedDims: string | undefined;
   siteId: string;
+  organizationId: string;
   canEdit: boolean;
 }) {
   const displaySrc = uploadedItem?.signed_url ?? templateDefault ?? null;
@@ -112,12 +114,12 @@ function ImageSlotCard({
       <div className="flex flex-wrap gap-2">
         <ImageUploader
           siteId={siteId}
-          organizationId="" // passed via parent; use hidden upload trigger approach
+          organizationId={organizationId}
           media={[]}
           canEdit={canEdit}
           initialUsageType={slot}
           initialReplaceMediaId={uploadedItem?.id ?? ""}
-          returnPath={`/dashboard/websites/${siteId}/editor/images`}
+          returnPath={`/dashboard/websites/${siteId}/media`}
         />
       </div>
       {uploadedItem && canEdit && (
@@ -146,26 +148,26 @@ export function ImagesTab({
     <div className="grid gap-4">
       {/* Upload a new image */}
       <Card className="p-4">
-        <h2 className="font-bold text-ink">Upload an image</h2>
+        <h2 className="font-bold text-ink">Add a photo</h2>
         <p className="mt-1 text-sm leading-6 text-muted">
-          Choose the slot, then upload. Uploaded images replace the template default for that slot.
+          Choose where the photo should appear, then upload it from your device.
         </p>
         <ImageUploader
           siteId={siteId}
           organizationId={organizationId}
           media={context.media}
           canEdit={context.canEdit}
-          returnPath={`/dashboard/websites/${siteId}/editor/images`}
+          returnPath={`/dashboard/websites/${siteId}/media`}
         />
       </Card>
 
       {/* Visual slot grid */}
       <Card className="p-4">
-        <h2 className="font-bold text-ink">Image slots</h2>
+        <h2 className="font-bold text-ink">Website photos</h2>
         <p className="mt-1 text-sm leading-6 text-muted">
-          Uploaded images override the template default. Remove an upload to restore the default.
+          Replace any photo below. Removing your photo restores the original design image.
         </p>
-        <div className="mt-4 grid grid-cols-2 gap-3">
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {PRIMARY_SLOTS.map((slot) => {
             const uploaded = context.media.find((m) => m.usage_type === slot && m.signed_url) ?? null;
             return (
@@ -176,6 +178,7 @@ export function ImagesTab({
                 templateDefault={TEMPLATE_DEFAULTS[slot]}
                 recommendedDims={RECOMMENDED_DIMS[slot]}
                 siteId={siteId}
+                organizationId={organizationId}
                 canEdit={context.canEdit}
               />
             );

@@ -26,6 +26,29 @@ function pageDisplayName(slug: string) {
   return slug.charAt(0).toUpperCase() + slug.slice(1);
 }
 
+function pageDescription(slug: string) {
+  const descriptions: Record<string, string> = {
+    home: "Edit homepage sections",
+    about: "Update your business story",
+    services: "Manage the services you offer",
+    projects: "Update your recent work",
+    contact: "Edit phone, WhatsApp and address"
+  };
+  return descriptions[slug] ?? "Update this page";
+}
+
+function sectionDescription(key: string) {
+  if (key.includes("hero")) return "Main heading, description and banner image";
+  if (key.includes("service")) return "Services displayed on this page";
+  if (key.includes("project")) return "Featured work and images";
+  if (key.includes("about")) return "Your business introduction";
+  if (key.includes("testimonial") || key.includes("review")) return "Customer reviews";
+  if (key.includes("faq")) return "Frequently asked questions";
+  if (key.includes("contact")) return "Phone, WhatsApp and enquiry details";
+  if (key.includes("footer")) return "Logo, links and contact details";
+  return "Update the text and details shown here";
+}
+
 /** Level 3 – single section field editor */
 function SectionFieldEditor({
   siteId,
@@ -42,9 +65,10 @@ function SectionFieldEditor({
       <input type="hidden" name="siteId" value={siteId} />
       <input type="hidden" name="sectionId" value={section.id} />
       <input type="hidden" name="sectionKey" value={section.section_key} />
+      <input type="hidden" name="returnPath" value={`/dashboard/websites/${siteId}/editor/pages?page=${section.page_slug}&section=${section.section_key}`} />
 
       {/* Eyebrow label */}
-      <Field label="Section label">
+      <Field label="Small label above the heading">
         <input
           className={inputClassName}
           name="eyebrow"
@@ -92,7 +116,7 @@ function SectionFieldEditor({
       />
 
       {/* CTA */}
-      <Field label="Primary button label and link">
+      <Field label="Primary button">
         <div className="grid gap-2 sm:grid-cols-2">
           <input
             className={inputClassName}
@@ -102,13 +126,17 @@ function SectionFieldEditor({
             placeholder="Request a quote"
             disabled={!canEdit}
           />
-          <input
+          <select
             className={inputClassName}
             name="primaryActionHref"
             defaultValue={text((content.primaryAction as Record<string, unknown> | undefined)?.href)}
-            placeholder="/contact"
             disabled={!canEdit}
-          />
+          >
+            <option value="/contact">Contact section</option>
+            <option value="/services">Services page</option>
+            <option value="/projects">Projects page</option>
+            <option value="/about">About page</option>
+          </select>
         </div>
       </Field>
 
@@ -141,14 +169,14 @@ function SectionFieldEditor({
 
       {/* Items */}
       {Array.isArray(content.items) && (
-        <Field label="Items (Title | Description, one per line)">
+        <Field label="Cards shown in this section (one per line)">
           <textarea
             className={inputClassName}
             name="items"
             rows={5}
             maxLength={1200}
             disabled={!canEdit}
-            placeholder="AC Maintenance | Routine servicing and support."
+            placeholder="AC Maintenance - Routine servicing and support."
             defaultValue={(content.items as Array<Record<string, string>>)
               .map((item) => `${item.title ?? ""}${item.description ? ` | ${item.description}` : ""}`)
               .join("\n")}
@@ -255,7 +283,7 @@ export function ContentTab({
                 href={`${editorBase}?page=${selectedPage}&section=${section.section_key}`}
                 className="flex items-center justify-between gap-3 px-4 py-3 text-sm font-semibold text-ink transition hover:bg-canvas"
               >
-                <span>{sectionDisplayName(section)}</span>
+                <span><span className="block">{sectionDisplayName(section)}</span><span className="mt-1 block text-xs font-normal text-muted">{sectionDescription(section.section_key)}</span></span>
                 <svg className="text-muted" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="9 18 15 12 9 6" />
                 </svg>
@@ -270,13 +298,12 @@ export function ContentTab({
   // ── Level 1: Pages list ──────────────────────────────────────────────────
   return (
     <div className="grid gap-4">
-      <p className="text-sm text-muted">Select a page to edit its sections.</p>
+      <p className="text-sm text-muted">What do you want to update?</p>
       <Card className="divide-y divide-line overflow-hidden p-0">
         {pages.length === 0 ? (
           <p className="p-4 text-sm text-muted">Choose a template to see pages.</p>
         ) : (
           pages.map((page) => {
-            const count = (grouped[page.page_slug] ?? []).length;
             return (
               <a
                 key={page.id}
@@ -285,9 +312,7 @@ export function ContentTab({
               >
                 <div>
                   <p className="font-semibold text-ink">{page.page_name}</p>
-                  {count > 0 && (
-                    <p className="text-xs text-muted">{count} section{count === 1 ? "" : "s"}</p>
-                  )}
+                  <p className="mt-1 text-xs text-muted">{pageDescription(page.page_slug)}</p>
                 </div>
                 <svg className="text-muted" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="9 18 15 12 9 6" />
