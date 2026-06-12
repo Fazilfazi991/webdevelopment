@@ -11,7 +11,8 @@
     "smoke:routes": "node scripts/smoke-routes.cjs",
     "smoke:design-system": "node scripts/smoke-design-system.cjs",
     "verify:design-media": "node scripts/verify-design-media-persistence.cjs",
-    "smoke:branding-domains": "node scripts/smoke-branding-domains.cjs"
+    "smoke:branding-domains": "node scripts/smoke-branding-domains.cjs",
+    "smoke:five-page-editor": "node scripts/smoke-five-page-editor.cjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",

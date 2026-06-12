@@ -110,8 +110,13 @@ export type TemplatePage = {
   template_id: string;
   page_name: string;
   page_slug: string;
+  navigation_label: string | null;
   display_order: number;
+  is_enabled: boolean;
+  is_required: boolean;
   is_default: boolean;
+  seo_title: string | null;
+  seo_description: string | null;
   created_at: string;
 };
 

@@ -6,6 +6,7 @@ import { Button, ButtonLink } from "@/components/ui/button";
 import { LivePreviewWorkspace } from "@/components/site-editor/live-preview-context";
 import { hasPermission } from "@/lib/access-control";
 import { applyEditorMerges, loadEditorContext } from "@/lib/site-editor/editor-loader";
+import { normaliseEditorPageSlug } from "@/lib/site-editor/page-structure";
 import { requireSiteSetup } from "@/lib/setup";
 import { hasUnpublishedChanges } from "@/app/dashboard/websites/website-card-state";
 import { ContentTab } from "@/app/dashboard/websites/[siteId]/editor/tabs/content-tab";
@@ -34,7 +35,7 @@ export async function EditorShell({
   const hasChanges = hasUnpublishedChanges(setup.site);
   const base = `/dashboard/websites/${setup.site.id}`;
   const resolvedTab = activeTab === "design" && canDesign ? "design" : activeTab === "images" && canUpload ? "images" : activeTab === "settings" && canEdit ? "settings" : activeTab === "sections" && canSections ? "sections" : "pages";
-  const selectedPage = searchParams.page ?? "home";
+  const selectedPage = normaliseEditorPageSlug(searchParams.page);
   const initialSectionId = merged.status === "ready" ? merged.preview.sections.find((section) => section.page_slug === selectedPage && section.section_key === searchParams.section)?.id : undefined;
 
   return (

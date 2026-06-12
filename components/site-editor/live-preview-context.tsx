@@ -1,10 +1,11 @@
 "use client";
 
-import { createContext, useContext, useMemo, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type MouseEvent } from "react";
 import { Check, ChevronLeft, Eye, X } from "lucide-react";
 import Link from "next/link";
 import { SiteRenderer } from "@/components/site-renderer/site-renderer";
 import { fontPresetMap } from "@/lib/site-editor/editor-loader";
+import { isDefaultEditorPageSlug, normaliseEditorPageSlug } from "@/lib/site-editor/page-structure";
 import { applyLocalImageToContent } from "@/lib/site-renderer/media-slots";
 import type { LoadedTemplatePreview } from "@/lib/site-renderer/template-types";
 import type { SiteMediaSlot } from "@/lib/site-renderer/media-slots";
@@ -22,6 +23,8 @@ type PreviewContextValue = {
   patchImage: (slot: SiteMediaSlot, src: string, alt: string) => void;
   selectedSectionId: string | null;
   selectSection: (sectionId: string | null, source?: "list" | "preview") => void;
+  currentPageSlug: string;
+  selectPage: (pageSlug: string, sectionKey?: string | null) => void;
   isDirty: boolean;
   markSaved: () => void;
 };
@@ -46,13 +49,40 @@ export function LivePreviewWorkspace({
   children: React.ReactNode;
 }) {
   const [preview, setPreview] = useState(initialPreview);
+  const [currentPageSlug, setCurrentPageSlug] = useState(normaliseEditorPageSlug(pageSlug));
   const [selectedSectionId, setSelectedSectionId] = useState<string | null>(initialSectionId ?? null);
   const [isDirty, setIsDirty] = useState(false);
   const previewScroller = useRef<HTMLDivElement>(null);
 
-  function selectSection(sectionId: string | null, source: "list" | "preview" = "list") {
+  useEffect(() => {
+    setCurrentPageSlug(normaliseEditorPageSlug(pageSlug));
+    setSelectedSectionId(initialSectionId ?? null);
+  }, [initialSectionId, pageSlug]);
+
+  const replaceEditorUrl = useCallback((nextPageSlug: string, sectionKey?: string | null) => {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    url.searchParams.set("page", nextPageSlug);
+    if (sectionKey) url.searchParams.set("section", sectionKey);
+    else url.searchParams.delete("section");
+    window.history.replaceState(window.history.state, "", `${url.pathname}?${url.searchParams.toString()}`);
+  }, []);
+
+  const selectPage = useCallback((nextPageSlug: string, sectionKey?: string | null) => {
+    const safePageSlug = normaliseEditorPageSlug(nextPageSlug);
+    setCurrentPageSlug(safePageSlug);
+    setSelectedSectionId(null);
+    replaceEditorUrl(safePageSlug, sectionKey);
+    requestAnimationFrame(() => {
+      if (previewScroller.current) previewScroller.current.scrollTop = 0;
+    });
+  }, [replaceEditorUrl]);
+
+  const selectSection = useCallback((sectionId: string | null, source: "list" | "preview" = "list") => {
     const scrollTop = previewScroller.current?.scrollTop;
     setSelectedSectionId(sectionId);
+    const section = preview?.sections.find((candidate) => candidate.id === sectionId);
+    if (section) replaceEditorUrl(section.page_slug, section.section_key);
     requestAnimationFrame(() => {
       if (previewScroller.current && scrollTop !== undefined) previewScroller.current.scrollTop = scrollTop;
       if (!sectionId) return;
@@ -60,7 +90,28 @@ export function LivePreviewWorkspace({
       if (source === "list") previewSection?.scrollIntoView({ behavior: "smooth", block: "center" });
       document.querySelector<HTMLElement>(`[data-editor-list-section-id="${sectionId}"]`)?.scrollIntoView({ behavior: "smooth", block: "nearest" });
     });
-  }
+  }, [preview, replaceEditorUrl]);
+
+  const handlePreviewNavigation = useCallback((event: MouseEvent<HTMLDivElement>) => {
+    const anchor = (event.target as HTMLElement).closest("a");
+    if (!anchor) return;
+    const href = anchor.getAttribute("href");
+    if (!href || href.startsWith("#") || href.startsWith("tel:") || href.startsWith("mailto:") || href.startsWith("https://wa.me/")) return;
+    let url: URL;
+    try {
+      url = new URL(href, window.location.origin);
+    } catch {
+      return;
+    }
+    if (url.origin !== window.location.origin) return;
+    const segments = url.pathname.split("/").filter(Boolean);
+    const lastSegment = segments[segments.length - 1] ?? "";
+    const nextPageSlug = url.pathname === "/" || segments.length <= 2 || lastSegment === "sites" ? "home" : lastSegment;
+    if (!isDefaultEditorPageSlug(nextPageSlug)) return;
+    event.preventDefault();
+    event.stopPropagation();
+    selectPage(nextPageSlug);
+  }, [selectPage]);
 
   const value = useMemo<PreviewContextValue>(() => ({
     patchSection(sectionId, patch) {
@@ -103,9 +154,11 @@ export function LivePreviewWorkspace({
     },
     selectedSectionId,
     selectSection,
+    currentPageSlug,
+    selectPage,
     isDirty,
     markSaved: () => setIsDirty(false)
-  }), [isDirty, selectedSectionId]);
+  }), [currentPageSlug, isDirty, selectPage, selectSection, selectedSectionId]);
 
   return (
     <PreviewContext.Provider value={value}>
@@ -130,7 +183,9 @@ export function LivePreviewWorkspace({
             </div>
             <div ref={previewScroller} className="max-h-[calc(100vh-180px)] overflow-auto bg-[#edf1ef] p-2 sm:p-4">
               <div className="mx-auto min-h-[620px] overflow-hidden rounded-lg bg-white shadow-lg">
-                {preview ? <SiteRenderer preview={preview} pageSlug={pageSlug} editor={{ selectedSectionId: selectedSectionId ?? undefined, onSelectSection: (sectionId) => selectSection(sectionId, "preview") }} /> : <div className="flex min-h-[500px] items-center justify-center p-8 text-center"><div><h3 className="font-bold text-ink">Choose a design first</h3><p className="mt-2 text-sm text-muted">The website preview will appear here.</p></div></div>}
+                <div onClickCapture={handlePreviewNavigation}>
+                  {preview ? <SiteRenderer preview={preview} pageSlug={currentPageSlug} editor={{ selectedSectionId: selectedSectionId ?? undefined, onSelectSection: (sectionId) => selectSection(sectionId, "preview") }} /> : <div className="flex min-h-[500px] items-center justify-center p-8 text-center"><div><h3 className="font-bold text-ink">Choose a design first</h3><p className="mt-2 text-sm text-muted">The website preview will appear here.</p></div></div>}
+                </div>
               </div>
             </div>
           </div>

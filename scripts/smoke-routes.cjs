@@ -32,7 +32,11 @@ const routes = [
   siteId ? { path: `/client/websites/${siteId}/preview`, allowRedirect: true, allowNotFound: true, expectCss: true } : null,
   siteId ? { path: `/client/websites/${siteId}/ai-setup`, allowRedirect: true, allowNotFound: true, expectCss: true } : null,
   siteId ? { path: `/client/websites/${siteId}/ai-suggestions`, allowRedirect: true, allowNotFound: true, expectCss: true } : null,
-  subdomain ? { path: `/sites/${subdomain}`, allowNotFound: true, expectCss: true } : null
+  subdomain ? { path: `/sites/${subdomain}`, allowNotFound: true, expectCss: true } : null,
+  subdomain ? { path: `/sites/${subdomain}/about`, allowNotFound: true, expectCss: true } : null,
+  subdomain ? { path: `/sites/${subdomain}/services`, allowNotFound: true, expectCss: true } : null,
+  subdomain ? { path: `/sites/${subdomain}/projects`, allowNotFound: true, expectCss: true } : null,
+  subdomain ? { path: `/sites/${subdomain}/contact`, allowNotFound: true, expectCss: true } : null
   , invitationToken ? { path: `/invitations/${invitationToken}`, allowRedirect: true, allowNotFound: true, expectCss: true } : null
 ].filter(Boolean);
 
@@ -81,7 +85,7 @@ async function checkRoute(route) {
   if (!siteId) console.log("SKIP /dashboard/websites/[siteId]/preview: set SMOKE_SITE_ID to include it.");
   if (!siteId) console.log("SKIP /dashboard/websites/[siteId]/ai-setup and /ai-suggestions: set SMOKE_SITE_ID to include them.");
   if (!siteId) console.log("SKIP /client/websites/[siteId] routes: set SMOKE_SITE_ID to include them.");
-  if (!subdomain) console.log("SKIP /sites/[subdomain]: set SMOKE_SUBDOMAIN to include it.");
+  if (!subdomain) console.log("SKIP /sites/[subdomain] nested routes: set SMOKE_SUBDOMAIN to include them.");
   if (!invitationToken) console.log("SKIP /invitations/[token]: set SMOKE_INVITATION_TOKEN to include it.");
 })().catch((error) => {
   console.error(error.message);

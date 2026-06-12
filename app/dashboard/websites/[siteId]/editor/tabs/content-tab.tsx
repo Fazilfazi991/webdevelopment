@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import { ChevronRight, ImageIcon, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, ChevronRight, FileText, ImageIcon, Plus, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { saveSectionContentAction } from "@/app/editor-actions";
 import { AiImproveButton } from "@/app/dashboard/websites/[siteId]/editor/tabs/ai-improve-button";
@@ -10,6 +10,7 @@ import { Button, ButtonLink } from "@/components/ui/button";
 import { Field, inputClassName } from "@/components/ui/field";
 import type { loadEditorContext } from "@/lib/site-editor/editor-loader";
 import type { TemplateSectionRecord } from "@/lib/site-renderer/template-types";
+import { defaultEditorPages, editorPageTitle, isDefaultEditorPageSlug, normaliseEditorPageSlug } from "@/lib/site-editor/page-structure";
 import { customerSectionDescriptions, customerSectionLabel } from "@/lib/site-editor/section-labels";
 
 function text(value: unknown) {
@@ -134,20 +135,64 @@ function SectionEditor({ siteId, section, canEdit }: { siteId: string; section: 
 
 export function ContentTab({ siteId, context, searchParams }: { siteId: string; context: Awaited<ReturnType<typeof loadEditorContext>>; searchParams?: { page?: string; section?: string } }) {
   const livePreview = useLivePreview();
+  const initialQueryPage = isDefaultEditorPageSlug(searchParams?.page) ? searchParams.page : null;
+  const [pageChosen, setPageChosen] = useState(Boolean(initialQueryPage));
   const sections = useMemo(() => context.previewResult.status === "ready" ? context.previewResult.preview.sections.filter((section) => !["header-topbar-standard", "header-clean", "floating-whatsapp"].includes(section.section_key)) : [], [context.previewResult]);
-  const initialSection = sections.find((section) => section.section_key === searchParams?.section && section.page_slug === (searchParams?.page ?? "home"));
+  const previewSelectedPage = livePreview?.currentPageSlug && livePreview.currentPageSlug !== "home";
+  const selectedPageSlug = pageChosen || previewSelectedPage ? normaliseEditorPageSlug(livePreview?.currentPageSlug ?? initialQueryPage) : null;
+  const initialSection = selectedPageSlug ? sections.find((section) => section.section_key === searchParams?.section && section.page_slug === selectedPageSlug) : undefined;
 
   useEffect(() => {
     if (initialSection && !livePreview?.selectedSectionId) livePreview?.selectSection(initialSection.id);
   }, [initialSection, livePreview]);
 
-  const homeSections = sections.filter((section) => section.page_slug === (searchParams?.page ?? "home"));
-  const selected = sections.find((section) => section.id === livePreview?.selectedSectionId) ?? initialSection;
+  useEffect(() => {
+    if (initialQueryPage) setPageChosen(true);
+  }, [initialQueryPage]);
+
+  const pageSections = selectedPageSlug ? sections.filter((section) => section.page_slug === selectedPageSlug) : [];
+  const selected = sections.find((section) => section.id === livePreview?.selectedSectionId && section.page_slug === selectedPageSlug) ?? initialSection;
+
+  if (!selectedPageSlug) {
+    return (
+      <div className="grid gap-4">
+        <div>
+          <h2 className="text-xl font-bold text-ink [text-wrap:balance]">Choose a page to update</h2>
+          <p className="mt-1 text-sm text-muted [text-wrap:pretty]">Pick one page first, then choose the section you want to edit.</p>
+        </div>
+        <div className="grid gap-3">
+          {defaultEditorPages.map((page) => (
+            <button
+              key={page.slug}
+              type="button"
+              onClick={() => {
+                setPageChosen(true);
+                livePreview?.selectPage(page.slug);
+              }}
+              className="group flex min-h-[72px] w-full items-center gap-3 rounded-xl bg-white p-3 text-left shadow-[0_10px_30px_rgba(24,33,31,0.08),inset_0_0_0_1px_rgba(0,0,0,0.06)] transition-[box-shadow,transform,background-color] duration-150 hover:bg-canvas active:scale-[0.96]"
+            >
+              <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-brand-50 text-brand-800 transition-colors group-hover:bg-white"><FileText size={18} /></span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-bold text-ink">{page.navLabel}</span>
+                <span className="mt-0.5 block text-xs text-muted [text-wrap:pretty]">{page.description}</span>
+              </span>
+              <ChevronRight size={17} className="shrink-0 text-muted group-hover:text-brand-700" />
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="grid gap-4">
-      <div><h2 className="text-xl font-bold text-ink [text-wrap:balance]">Website sections</h2><p className="mt-1 text-sm text-muted [text-wrap:pretty]">Choose a section here or click it in the preview.</p></div>
+      <div>
+        <button type="button" onClick={() => { setPageChosen(false); livePreview?.selectPage("home"); window.history.replaceState(window.history.state, "", `/dashboard/websites/${siteId}/editor/pages`); }} className="mb-3 inline-flex min-h-10 items-center gap-2 rounded-lg px-2 text-sm font-bold text-brand-800 transition-colors hover:bg-brand-50 active:scale-[0.96]"><ArrowLeft size={16} />Back to pages</button>
+        <h2 className="text-xl font-bold text-ink [text-wrap:balance]">Choose a section</h2>
+        <p className="mt-1 text-sm text-muted [text-wrap:pretty]">{editorPageTitle(selectedPageSlug)} sections only. Choose one here or click it in the preview.</p>
+      </div>
       <div className="max-h-64 overflow-y-auto rounded-xl bg-white shadow-[0_10px_30px_rgba(24,33,31,0.08),inset_0_0_0_1px_rgba(0,0,0,0.06)]">
-        {homeSections.map((section) => { const active = selected?.id === section.id; const label = customerSectionLabel(section); return <button key={section.id} data-editor-list-section-id={section.id} type="button" onClick={() => livePreview?.selectSection(section.id)} className={`flex min-h-14 w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors active:bg-brand-50 ${active ? "bg-brand-50" : "hover:bg-canvas"}`}><span><span className="block text-sm font-bold text-ink">{label}</span><span className="mt-0.5 block text-xs text-muted">{customerSectionDescriptions[label]}</span></span><ChevronRight size={17} className={`shrink-0 ${active ? "text-brand-700" : "text-muted"}`} /></button>; })}
+        {pageSections.map((section) => { const active = selected?.id === section.id; const label = customerSectionLabel(section); return <button key={section.id} data-editor-list-section-id={section.id} type="button" onClick={() => livePreview?.selectSection(section.id)} className={`flex min-h-14 w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors active:bg-brand-50 ${active ? "bg-brand-50" : "hover:bg-canvas"}`}><span><span className="block text-sm font-bold text-ink">{label}</span><span className="mt-0.5 block text-xs text-muted">{customerSectionDescriptions[label]}</span></span><ChevronRight size={17} className={`shrink-0 ${active ? "text-brand-700" : "text-muted"}`} /></button>; })}
       </div>
       {selected ? <div className="border-t border-line pt-4"><SectionEditor key={selected.id} siteId={siteId} section={selected} canEdit={context.canEdit} /></div> : null}
     </div>
