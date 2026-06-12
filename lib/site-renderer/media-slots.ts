@@ -171,3 +171,21 @@ export function applyMediaOverridesToContent(content: unknown, sectionKey: strin
 
   return withMediaImage(current, sectionKey, media);
 }
+
+export function applyLocalImageToContent(content: unknown, sectionKey: string, slot: SiteMediaSlot, image: ImageValue) {
+  const current = content && typeof content === "object" && !Array.isArray(content) ? { ...(content as Record<string, unknown>) } : {};
+  if (Array.isArray(current.items)) {
+    return {
+      ...current,
+      items: current.items.map((item, index) => {
+        if (!item || typeof item !== "object" || Array.isArray(item)) return item;
+        const record = { ...(item as Record<string, unknown>) };
+        const currentImage = record.image && typeof record.image === "object" ? record.image as Partial<ImageValue> : {};
+        const resolved = resolveSiteMediaSlot({ sectionKey, itemTitle: typeof record.title === "string" ? record.title : undefined, itemIndex: index, imageSrc: currentImage.src });
+        return resolved === slot || baseSlot(resolved ?? "general") === slot ? { ...record, image } : record;
+      })
+    };
+  }
+  const resolved = resolveSiteMediaSlot({ sectionKey, imageSrc: (current.image as Partial<ImageValue> | undefined)?.src });
+  return resolved === slot || baseSlot(resolved ?? "general") === slot ? { ...current, image } : current;
+}

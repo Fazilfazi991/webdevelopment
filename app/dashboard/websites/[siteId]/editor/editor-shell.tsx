@@ -1,10 +1,9 @@
 import { ArrowLeft, ExternalLink, Globe2, Save } from "lucide-react";
-import Link from "next/link";
 import { saveVersionAction } from "@/app/editor-actions";
 import { publishWebsiteAction } from "@/app/publishing-actions";
 import { StatusMessage } from "@/app/auth/status-message";
 import { Button, ButtonLink } from "@/components/ui/button";
-import { SiteRenderer } from "@/components/site-renderer/site-renderer";
+import { LivePreviewWorkspace } from "@/components/site-editor/live-preview-context";
 import { hasPermission } from "@/lib/access-control";
 import { applyEditorMerges, loadEditorContext } from "@/lib/site-editor/editor-loader";
 import { requireSiteSetup } from "@/lib/setup";
@@ -14,6 +13,7 @@ import { DesignTab } from "@/app/dashboard/websites/[siteId]/editor/tabs/design-
 import { ImagesTab } from "@/app/dashboard/websites/[siteId]/editor/tabs/images-tab";
 import { SectionsTab } from "@/app/dashboard/websites/[siteId]/editor/tabs/sections-tab";
 import { SettingsTab } from "@/app/dashboard/websites/[siteId]/editor/tabs/settings-tab";
+import Link from "next/link";
 
 export async function EditorShell({
   siteId, activeTab, searchParams
@@ -35,6 +35,7 @@ export async function EditorShell({
   const base = `/dashboard/websites/${setup.site.id}`;
   const resolvedTab = activeTab === "design" && canDesign ? "design" : activeTab === "images" && canUpload ? "images" : activeTab === "settings" && canEdit ? "settings" : activeTab === "sections" && canSections ? "sections" : "pages";
   const selectedPage = searchParams.page ?? "home";
+  const initialSectionId = merged.status === "ready" ? merged.preview.sections.find((section) => section.page_slug === selectedPage && section.section_key === searchParams.section)?.id : undefined;
 
   return (
     <div className="mx-auto max-w-[1500px]">
@@ -45,11 +46,20 @@ export async function EditorShell({
         {canPublish ? <form action={publishWebsiteAction}><input type="hidden" name="siteId" value={setup.site.id} /><Button type="submit"><Globe2 size={16} /><span className="hidden sm:inline">{isPublished ? "Publish Updates" : "Publish Website"}</span><span className="sm:hidden">Publish</span></Button></form> : null}
       </header>
 
+      <nav className="mb-4 flex gap-1 overflow-x-auto rounded-xl bg-white p-1 shadow-[0_8px_24px_rgba(24,33,31,0.08),inset_0_0_0_1px_rgba(0,0,0,0.05)]" aria-label="Website editor">
+        {[
+          ["Pages", `${base}/editor/pages`],
+          ["Photos", `${base}/editor/images`],
+          ["Style", `${base}/editor/design`],
+          ["Settings", `${base}/editor/settings`]
+        ].map(([label, href]) => <Link key={label} href={href} className={`inline-flex min-h-10 min-w-max flex-1 items-center justify-center rounded-lg px-4 text-sm font-bold transition-colors active:scale-[0.96] ${resolvedTab === (label === "Pages" ? "pages" : label === "Photos" ? "images" : label.toLowerCase()) ? "bg-brand-50 text-brand-800" : "text-muted hover:bg-canvas hover:text-ink"}`}>{label}</Link>)}
+      </nav>
+
       <StatusMessage error={searchParams.error} message={searchParams.message} />
       {!canEdit && resolvedTab === "pages" ? <div className="mb-4 rounded-lg border border-line bg-white p-4 text-sm text-muted">You can preview this website, but editing is not available with your current access.</div> : null}
 
-      <div className="grid gap-5 lg:grid-cols-[400px_minmax(0,1fr)] lg:items-start">
-        <section className="min-w-0 rounded-xl border border-line bg-white p-4 shadow-soft sm:p-5">
+      <LivePreviewWorkspace initialPreview={merged.status === "ready" ? merged.preview : null} pageSlug={selectedPage} siteId={setup.site.id} initialSectionId={initialSectionId}>
+        <section className="min-w-0 rounded-xl bg-white p-4 shadow-[0_12px_36px_rgba(24,33,31,0.1)] sm:p-5">
           <div className="mb-5">
             <p className="text-xs font-bold uppercase tracking-widest text-brand-700">{resolvedTab === "design" ? "Website Style" : resolvedTab === "settings" ? "Website Settings" : resolvedTab === "images" ? "Photos & Images" : "Edit Website"}</p>
             <h2 className="mt-2 text-xl font-bold text-ink">{resolvedTab === "pages" ? (searchParams.section ? "Update this section" : searchParams.page ? "Choose a section to update" : "Choose a page to update") : resolvedTab === "design" ? "Choose how your website should look" : "Update this website"}</h2>
@@ -62,14 +72,7 @@ export async function EditorShell({
           {resolvedTab === "sections" ? <SectionsTab siteId={setup.site.id} context={context} /> : null}
           {canEdit && resolvedTab === "pages" ? <form action={saveVersionAction} className="mt-5 border-t border-line pt-4"><input type="hidden" name="siteId" value={setup.site.id} /><Button type="submit" variant="secondary" className="w-full"><Save size={16} />Save Website Draft</Button></form> : null}
         </section>
-
-        <section className="hidden min-w-0 lg:block">
-          <div className="sticky top-24 overflow-hidden rounded-xl border border-line bg-white shadow-soft">
-            <div className="flex items-center justify-between border-b border-line px-4 py-3"><div><p className="text-sm font-bold text-ink">Website preview</p><p className="text-xs text-muted">Updates after saving</p></div><Link href={`${base}/preview`} className="text-sm font-bold text-brand-700">Open full preview</Link></div>
-            <div className="max-h-[calc(100vh-180px)] overflow-auto bg-[#edf1ef] p-4"><div className="mx-auto min-h-[620px] overflow-hidden rounded-lg bg-white shadow-lg">{merged.status === "ready" ? <SiteRenderer preview={merged.preview} pageSlug={selectedPage} /> : <div className="flex min-h-[500px] items-center justify-center p-8 text-center"><div><h3 className="font-bold text-ink">Choose a design first</h3><p className="mt-2 text-sm text-muted">The website preview will appear here.</p></div></div>}</div></div>
-          </div>
-        </section>
-      </div>
+      </LivePreviewWorkspace>
     </div>
   );
 }

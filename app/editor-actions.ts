@@ -84,6 +84,16 @@ function sectionContentFromForm(formData: FormData) {
       });
   }
 
+  const itemsJson = value(formData, "itemsJson");
+  if (itemsJson) {
+    try {
+      const parsed = JSON.parse(itemsJson);
+      if (Array.isArray(parsed)) content.items = parsed;
+    } catch {
+      // The section schema below reports a customer-friendly validation error.
+    }
+  }
+
   return content;
 }
 

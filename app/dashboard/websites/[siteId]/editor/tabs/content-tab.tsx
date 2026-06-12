@@ -1,327 +1,190 @@
+"use client";
+
+import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { ChevronRight, ImageIcon, Plus, Trash2 } from "lucide-react";
+import Image from "next/image";
 import { saveSectionContentAction } from "@/app/editor-actions";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { AiImproveButton } from "@/app/dashboard/websites/[siteId]/editor/tabs/ai-improve-button";
+import { useLivePreview } from "@/components/site-editor/live-preview-context";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { Field, inputClassName } from "@/components/ui/field";
 import type { loadEditorContext } from "@/lib/site-editor/editor-loader";
 import type { TemplateSectionRecord } from "@/lib/site-renderer/template-types";
-import { AiImproveButton } from "@/app/dashboard/websites/[siteId]/editor/tabs/ai-improve-button";
+
+const sectionLabels: Record<string, string> = {
+  "hero-split-image": "Hero Banner",
+  "hero-background-overlay": "Hero Banner",
+  "hero-minimal-services": "Hero Banner",
+  "service-highlights-row": "Highlights",
+  "why-choose-us-grid": "Highlights",
+  "about-image-left": "About Us",
+  "about-image-right": "About Us",
+  "services-card-grid": "Services",
+  "services-icon-grid": "Services",
+  "services-alternating-rows": "Services",
+  "project-gallery-grid": "Projects",
+  "testimonials-cards": "Customer Reviews",
+  "faq-accordion": "Questions",
+  "contact-cta-banner": "Contact",
+  "contact-map-form": "Contact",
+  "footer-standard": "Footer"
+};
+
+const descriptions: Record<string, string> = {
+  "Hero Banner": "The first message customers see",
+  Highlights: "Your strongest reasons to choose the business",
+  "About Us": "Your business story and introduction",
+  Services: "What the business offers",
+  Projects: "Photos and examples of recent work",
+  "Customer Reviews": "What customers say about the business",
+  Questions: "Answers to common customer questions",
+  Contact: "How customers can get in touch",
+  Footer: "Business details at the bottom of every page"
+};
 
 function text(value: unknown) {
   return typeof value === "string" ? value : "";
 }
 
-function sectionDisplayName(section: { section_key: string; default_content: unknown }) {
-  const content = section.default_content as Record<string, unknown>;
-  const title = text(content.title);
-  const key = section.section_key;
-  if (title) return title;
-  // Humanise the key
-  return key
-    .replace(/^(header|footer)-/, "")
-    .replaceAll("-", " ")
-    .replace(/\b\w/g, (c) => c.toUpperCase());
+function labelFor(section: TemplateSectionRecord) {
+  return sectionLabels[section.section_key] ?? "Website Section";
 }
 
-function pageDisplayName(slug: string) {
-  return slug.charAt(0).toUpperCase() + slug.slice(1);
-}
-
-function pageDescription(slug: string) {
-  const descriptions: Record<string, string> = {
-    home: "Edit homepage sections",
-    about: "Update your business story",
-    services: "Manage the services you offer",
-    projects: "Update your recent work",
-    contact: "Edit phone, WhatsApp and address"
-  };
-  return descriptions[slug] ?? "Update this page";
-}
-
-function sectionDescription(key: string) {
-  if (key.includes("hero")) return "Main heading, description and banner image";
-  if (key.includes("service")) return "Services displayed on this page";
-  if (key.includes("project")) return "Featured work and images";
-  if (key.includes("about")) return "Your business introduction";
-  if (key.includes("testimonial") || key.includes("review")) return "Customer reviews";
-  if (key.includes("faq")) return "Frequently asked questions";
-  if (key.includes("contact")) return "Phone, WhatsApp and enquiry details";
-  if (key.includes("footer")) return "Logo, links and contact details";
-  return "Update the text and details shown here";
-}
-
-/** Level 3 – single section field editor */
-function SectionFieldEditor({
+function SectionItemsEditor({
   siteId,
   section,
-  canEdit
+  onChange
 }: {
   siteId: string;
   section: TemplateSectionRecord;
-  canEdit: boolean;
+  onChange: (items: Array<Record<string, unknown>>) => void;
 }) {
   const content = section.default_content as Record<string, unknown>;
+  const kind = section.section_key;
+  const [items, setItems] = useState<Array<Record<string, unknown>>>(() => Array.isArray(content.items) ? content.items as Array<Record<string, unknown>> : []);
+  const isReview = kind === "testimonials-cards";
+  const isFaq = kind === "faq-accordion";
+  const isProject = kind === "project-gallery-grid";
+
+  function update(index: number, key: string, value: string) {
+    const next = items.map((item, itemIndex) => itemIndex === index ? { ...item, [key]: value } : item);
+    setItems(next);
+    onChange(next);
+  }
+
+  function add() {
+    const item = isReview ? { name: "New customer", quote: "Add the customer review here." } : isFaq ? { question: "New question", answer: "Add the answer here." } : { title: "New item", body: "Add a short description." };
+    const next = [...items, item];
+    setItems(next);
+    onChange(next);
+  }
+
+  function remove(index: number) {
+    const next = items.filter((_, itemIndex) => itemIndex !== index);
+    setItems(next);
+    onChange(next);
+  }
+
   return (
-    <form action={saveSectionContentAction} className="grid gap-3">
+    <div className="grid gap-3">
+      <input type="hidden" name="itemsJson" value={JSON.stringify(items)} />
+      {items.map((item, index) => (
+        <div key={index} className="rounded-xl bg-canvas p-3 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.06)]">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <p className="text-sm font-bold text-ink">{isReview ? `Review ${index + 1}` : isFaq ? `Question ${index + 1}` : isProject ? `Project ${index + 1}` : `Card ${index + 1}`}</p>
+            <button type="button" onClick={() => remove(index)} className="flex size-10 items-center justify-center rounded-lg text-muted transition-colors hover:bg-red-50 hover:text-danger active:scale-[0.96]" aria-label={`Remove item ${index + 1}`}><Trash2 size={16} /></button>
+          </div>
+          <div className="grid gap-3">
+            <Field label={isReview ? "Customer name" : isFaq ? "Question" : isProject ? "Title (optional)" : "Title"}>
+              <input className={inputClassName} value={text(item[isReview ? "name" : isFaq ? "question" : "title"])} onChange={(event) => update(index, isReview ? "name" : isFaq ? "question" : "title", event.target.value)} />
+            </Field>
+            <Field label={isReview ? "Review" : isFaq ? "Answer" : isProject ? "Caption (optional)" : "Short description"}>
+              <textarea className={inputClassName} rows={3} value={text(item[isReview ? "quote" : isFaq ? "answer" : "body"] ?? item.description)} onChange={(event) => update(index, isReview ? "quote" : isFaq ? "answer" : "body", event.target.value)} />
+            </Field>
+            {isReview ? <Field label="Rating (optional)"><select className={inputClassName} value={text(item.context)} onChange={(event) => update(index, "context", event.target.value)}><option value="">No rating</option><option value="5 stars">5 stars</option><option value="4 stars">4 stars</option><option value="3 stars">3 stars</option></select></Field> : null}
+            {isProject ? <ButtonLink href={`/dashboard/websites/${siteId}/editor/images`} variant="secondary" className="w-full"><ImageIcon size={16} />Change photo in Photos</ButtonLink> : null}
+          </div>
+        </div>
+      ))}
+      <Button type="button" variant="secondary" onClick={add} className="w-full"><Plus size={16} />Add {isReview ? "Review" : isFaq ? "Question" : isProject ? "Project" : "Service"}</Button>
+    </div>
+  );
+}
+
+function SectionEditor({ siteId, section, canEdit }: { siteId: string; section: TemplateSectionRecord; canEdit: boolean }) {
+  const livePreview = useLivePreview();
+  const content = section.default_content as Record<string, unknown>;
+  const label = labelFor(section);
+  const hasItems = Array.isArray(content.items);
+  const hasImage = content.image && typeof content.image === "object";
+  const image = hasImage ? content.image as Record<string, unknown> : null;
+  const isHero = label === "Hero Banner";
+  const [advanced, setAdvanced] = useState(false);
+
+  function updatePreview(event: FormEvent<HTMLFormElement>) {
+    const target = event.target as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement;
+    if (!target.name || target.type === "hidden") return;
+    if (target.name === "primaryActionLabel" || target.name === "primaryActionHref") {
+      const current = content.primaryAction && typeof content.primaryAction === "object" ? content.primaryAction as Record<string, unknown> : {};
+      livePreview?.patchSection(section.id, { primaryAction: { ...current, [target.name === "primaryActionLabel" ? "label" : "href"]: target.value } });
+    } else if (["eyebrow", "title", "body", "phone", "email", "location", "summary"].includes(target.name)) {
+      livePreview?.patchSection(section.id, { [target.name]: target.value });
+    }
+  }
+
+  return (
+    <form id="section-editor-form" action={saveSectionContentAction} onInput={updatePreview} className="grid gap-4">
       <input type="hidden" name="siteId" value={siteId} />
       <input type="hidden" name="sectionId" value={section.id} />
       <input type="hidden" name="sectionKey" value={section.section_key} />
       <input type="hidden" name="returnPath" value={`/dashboard/websites/${siteId}/editor/pages?page=${section.page_slug}&section=${section.section_key}`} />
 
-      {/* Eyebrow label */}
-      <Field label="Small label above the heading">
-        <input
-          className={inputClassName}
-          name="eyebrow"
-          defaultValue={text(content.eyebrow)}
-          maxLength={70}
-          disabled={!canEdit}
-        />
-      </Field>
+      <div>
+        <p className="text-xs font-bold uppercase tracking-[0.16em] text-brand-700">Editing</p>
+        <h2 className="mt-1 text-xl font-bold text-ink [text-wrap:balance]">{label}</h2>
+        <p className="mt-1 text-sm text-muted [text-wrap:pretty]">{descriptions[label]}</p>
+      </div>
 
-      {/* Heading + AI */}
-      <Field label="Heading">
-        <input
-          className={inputClassName}
-          name="title"
-          defaultValue={text(content.title)}
-          maxLength={70}
-          disabled={!canEdit}
-        />
-      </Field>
-      <AiImproveButton
-        siteId={siteId}
-        sectionKey={section.section_key}
-        fieldKey="title"
-        currentValue={text(content.title)}
-        canEdit={canEdit}
-      />
+      {content.eyebrow !== undefined ? <Field label="Small label"><input className={inputClassName} name="eyebrow" defaultValue={text(content.eyebrow)} disabled={!canEdit} /></Field> : null}
+      {content.title !== undefined ? <><Field label={isHero ? "Main heading" : "Heading"}><input className={inputClassName} name="title" defaultValue={text(content.title)} maxLength={90} disabled={!canEdit} /></Field><AiImproveButton siteId={siteId} sectionKey={section.section_key} fieldKey="title" currentValue={text(content.title)} canEdit={canEdit} /></> : null}
+      {content.body !== undefined ? <><Field label={label === "About Us" ? "Full text" : "Short description"}><textarea className={inputClassName} name="body" defaultValue={text(content.body)} rows={5} maxLength={800} disabled={!canEdit} /></Field><AiImproveButton siteId={siteId} sectionKey={section.section_key} fieldKey="body" currentValue={text(content.body)} canEdit={canEdit} /></> : null}
 
-      {/* Body text + AI */}
-      <Field label="Description">
-        <textarea
-          className={inputClassName}
-          name="body"
-          defaultValue={text(content.body)}
-          rows={4}
-          maxLength={240}
-          disabled={!canEdit}
-        />
-      </Field>
-      <AiImproveButton
-        siteId={siteId}
-        sectionKey={section.section_key}
-        fieldKey="body"
-        currentValue={text(content.body)}
-        canEdit={canEdit}
-      />
+      {isHero ? <div className="grid gap-3 rounded-xl bg-canvas p-3"><Field label="Primary button text"><input className={inputClassName} name="primaryActionLabel" defaultValue={text((content.primaryAction as Record<string, unknown> | undefined)?.label)} /></Field><Field label="Primary button action"><select className={inputClassName} name="primaryActionHref" defaultValue={text((content.primaryAction as Record<string, unknown> | undefined)?.href)}><option value="/contact">Open Contact Form</option><option value="tel:">Call Phone Number</option><option value="https://wa.me/">Open WhatsApp</option><option value="/services">Go to Services</option><option value="/projects">Go to Projects</option>{advanced ? <option value="#custom">Custom Link</option> : null}</select></Field></div> : null}
 
-      {/* CTA */}
-      <Field label="Primary button">
-        <div className="grid gap-2 sm:grid-cols-2">
-          <input
-            className={inputClassName}
-            name="primaryActionLabel"
-            defaultValue={text((content.primaryAction as Record<string, unknown> | undefined)?.label)}
-            maxLength={30}
-            placeholder="Request a quote"
-            disabled={!canEdit}
-          />
-          <select
-            className={inputClassName}
-            name="primaryActionHref"
-            defaultValue={text((content.primaryAction as Record<string, unknown> | undefined)?.href)}
-            disabled={!canEdit}
-          >
-            <option value="/contact">Contact section</option>
-            <option value="/services">Services page</option>
-            <option value="/projects">Projects page</option>
-            <option value="/about">About page</option>
-          </select>
-        </div>
-      </Field>
+      {hasImage ? <div className="rounded-xl bg-canvas p-3"><p className="mb-2 text-sm font-bold text-ink">Photo</p><div className="relative aspect-[16/9] overflow-hidden rounded-lg bg-white outline outline-1 outline-black/10"><Image src={text(image?.src)} alt={text(image?.alt) || "Current section"} fill unoptimized className="object-cover" /></div><div className="mt-3 grid gap-2"><ButtonLink href={`/dashboard/websites/${siteId}/editor/images`} variant="secondary" className="w-full"><ImageIcon size={16} />Change Photo</ButtonLink><p className="text-center text-xs text-muted">Upload, choose from your gallery, or restore the design photo.</p></div><input type="hidden" name="imageSrc" value={text(image?.src)} /><input type="hidden" name="imageAlt" value={text(image?.alt) || `${label} photo`} /></div> : null}
 
-      {/* Image path */}
-      {(content.image !== undefined) && (
-        <Field label="Image alt text">
-          <input
-            className={inputClassName}
-            name="imageAlt"
-            defaultValue={text((content.image as Record<string, unknown> | undefined)?.alt)}
-            maxLength={180}
-            placeholder="Describe this image for accessibility"
-            disabled={!canEdit}
-          />
-        </Field>
-      )}
+      {hasItems ? <SectionItemsEditor siteId={siteId} section={section} onChange={(items) => livePreview?.patchSection(section.id, { items })} /> : null}
+      {content.phone !== undefined ? <Field label="Phone"><input className={inputClassName} name="phone" defaultValue={text(content.phone)} /></Field> : null}
+      {content.email !== undefined ? <Field label="Email"><input className={inputClassName} name="email" type="email" defaultValue={text(content.email)} /></Field> : null}
+      {content.location !== undefined ? <Field label="Address"><textarea className={inputClassName} name="location" rows={3} defaultValue={text(content.location)} /></Field> : null}
+      {content.summary !== undefined ? <Field label="Short description"><textarea className={inputClassName} name="body" rows={3} defaultValue={text(content.summary)} /></Field> : null}
 
-      {/* Bullets */}
-      {Array.isArray(content.bullets) && (
-        <Field label="Highlights (one per line)">
-          <textarea
-            className={inputClassName}
-            name="bullets"
-            defaultValue={(content.bullets as string[]).join("\n")}
-            rows={3}
-            disabled={!canEdit}
-          />
-        </Field>
-      )}
-
-      {/* Items */}
-      {Array.isArray(content.items) && (
-        <Field label="Cards shown in this section (one per line)">
-          <textarea
-            className={inputClassName}
-            name="items"
-            rows={5}
-            maxLength={1200}
-            disabled={!canEdit}
-            placeholder="AC Maintenance - Routine servicing and support."
-            defaultValue={(content.items as Array<Record<string, string>>)
-              .map((item) => `${item.title ?? ""}${item.description ? ` | ${item.description}` : ""}`)
-              .join("\n")}
-          />
-        </Field>
-      )}
-
-      <Button type="submit" disabled={!canEdit}>
-        Save section
-      </Button>
+      <button type="button" onClick={() => setAdvanced((value) => !value)} className="min-h-11 text-left text-sm font-bold text-brand-700">{advanced ? "Hide Advanced Settings" : "Switch to Advanced Mode"}</button>
+      {advanced ? <div className="rounded-xl bg-canvas p-3 text-sm text-muted"><p className="font-bold text-ink">Advanced Settings</p><p className="mt-1">Section visibility, layout choices, ordering, SEO, version history, and reset controls remain available in Settings.</p></div> : null}
+      <Button type="submit" disabled={!canEdit} className="w-full">Save Section</Button>
     </form>
   );
 }
 
-/** Sections grouped by page slug */
-type GroupedSections = Record<string, TemplateSectionRecord[]>;
+export function ContentTab({ siteId, context, searchParams }: { siteId: string; context: Awaited<ReturnType<typeof loadEditorContext>>; searchParams?: { page?: string; section?: string } }) {
+  const livePreview = useLivePreview();
+  const sections = useMemo(() => context.previewResult.status === "ready" ? context.previewResult.preview.sections.filter((section) => !["header-topbar-standard", "header-clean", "floating-whatsapp"].includes(section.section_key)) : [], [context.previewResult]);
+  const initialSection = sections.find((section) => section.section_key === searchParams?.section && section.page_slug === (searchParams?.page ?? "home"));
 
-const HIDDEN_SECTION_KEYS = ["header-topbar-standard", "footer-standard", "floating-whatsapp"];
+  useEffect(() => {
+    if (initialSection && !livePreview?.selectedSectionId) livePreview?.selectSection(initialSection.id);
+  }, [initialSection, livePreview]);
 
-export function ContentTab({
-  siteId,
-  context,
-  searchParams
-}: {
-  siteId: string;
-  context: Awaited<ReturnType<typeof loadEditorContext>>;
-  searchParams?: { page?: string; section?: string };
-}) {
-  const allSections =
-    context.previewResult.status === "ready"
-      ? context.previewResult.preview.sections.filter(
-          (s) => !HIDDEN_SECTION_KEYS.includes(s.section_key)
-        )
-      : [];
+  const selected = sections.find((section) => section.id === livePreview?.selectedSectionId) ?? initialSection;
+  if (selected) return <SectionEditor key={selected.id} siteId={siteId} section={selected} canEdit={context.canEdit} />;
 
-  // Pages in display order
-  const pages = context.previewResult.status === "ready"
-    ? [...new Map(
-        context.previewResult.preview.pages.map((p) => [p.page_slug, p])
-      ).values()].sort((a, b) => a.display_order - b.display_order)
-    : [];
-
-  const grouped: GroupedSections = allSections.reduce<GroupedSections>((acc, s) => {
-    acc[s.page_slug] = [...(acc[s.page_slug] ?? []), s];
-    return acc;
-  }, {});
-
-  const selectedPage = searchParams?.page;
-  const selectedSectionKey = searchParams?.section;
-
-  const editorBase = `/dashboard/websites/${siteId}/editor/pages`;
-
-  // ── Level 3: Single section editor ──────────────────────────────────────
-  if (selectedPage && selectedSectionKey) {
-    const pageSections = grouped[selectedPage] ?? [];
-    const section = pageSections.find((s) => s.section_key === selectedSectionKey);
-
-    return (
-      <div className="grid gap-4">
-        {/* Back breadcrumb */}
-        <nav className="flex items-center gap-1 text-sm" aria-label="Section breadcrumb">
-          <a href={editorBase} className="text-muted hover:text-ink">Pages</a>
-          <span className="text-muted">/</span>
-          <a href={`${editorBase}?page=${selectedPage}`} className="text-muted hover:text-ink">
-            {pageDisplayName(selectedPage)}
-          </a>
-          <span className="text-muted">/</span>
-          <span className="font-semibold text-ink">{section ? sectionDisplayName(section) : selectedSectionKey}</span>
-        </nav>
-
-        {section ? (
-          <Card className="p-4">
-            <h3 className="mb-4 font-bold text-ink">{sectionDisplayName(section)}</h3>
-            <SectionFieldEditor siteId={siteId} section={section} canEdit={context.canEdit} />
-          </Card>
-        ) : (
-          <Card className="p-4">
-            <p className="text-sm text-muted">Section not found. <a href={editorBase} className="font-semibold text-brand-700">Back to pages</a></p>
-          </Card>
-        )}
-      </div>
-    );
-  }
-
-  // ── Level 2: Sections list for a page ───────────────────────────────────
-  if (selectedPage) {
-    const pageSections = grouped[selectedPage] ?? [];
-
-    return (
-      <div className="grid gap-4">
-        <nav className="flex items-center gap-1 text-sm" aria-label="Page breadcrumb">
-          <a href={editorBase} className="text-muted hover:text-ink">Pages</a>
-          <span className="text-muted">/</span>
-          <span className="font-semibold text-ink">{pageDisplayName(selectedPage)}</span>
-        </nav>
-
-        <Card className="divide-y divide-line overflow-hidden p-0">
-          {pageSections.length === 0 ? (
-            <p className="p-4 text-sm text-muted">No editable sections on this page.</p>
-          ) : (
-            pageSections.map((section) => (
-              <a
-                key={section.id}
-                href={`${editorBase}?page=${selectedPage}&section=${section.section_key}`}
-                className="flex items-center justify-between gap-3 px-4 py-3 text-sm font-semibold text-ink transition hover:bg-canvas"
-              >
-                <span><span className="block">{sectionDisplayName(section)}</span><span className="mt-1 block text-xs font-normal text-muted">{sectionDescription(section.section_key)}</span></span>
-                <svg className="text-muted" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="9 18 15 12 9 6" />
-                </svg>
-              </a>
-            ))
-          )}
-        </Card>
-      </div>
-    );
-  }
-
-  // ── Level 1: Pages list ──────────────────────────────────────────────────
+  const homeSections = sections.filter((section) => section.page_slug === (searchParams?.page ?? "home"));
   return (
     <div className="grid gap-4">
-      <p className="text-sm text-muted">What do you want to update?</p>
-      <Card className="divide-y divide-line overflow-hidden p-0">
-        {pages.length === 0 ? (
-          <p className="p-4 text-sm text-muted">Choose a template to see pages.</p>
-        ) : (
-          pages.map((page) => {
-            return (
-              <a
-                key={page.id}
-                href={`${editorBase}?page=${page.page_slug}`}
-                className="flex items-center justify-between gap-3 px-4 py-3 text-sm transition hover:bg-canvas"
-              >
-                <div>
-                  <p className="font-semibold text-ink">{page.page_name}</p>
-                  <p className="mt-1 text-xs text-muted">{pageDescription(page.page_slug)}</p>
-                </div>
-                <svg className="text-muted" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="9 18 15 12 9 6" />
-                </svg>
-              </a>
-            );
-          })
-        )}
-      </Card>
+      <div><h2 className="text-xl font-bold text-ink [text-wrap:balance]">Click your website to start</h2><p className="mt-1 text-sm text-muted [text-wrap:pretty]">Or choose a section below. You will only see the fields that matter.</p></div>
+      <div className="overflow-hidden rounded-xl bg-white shadow-[0_10px_30px_rgba(24,33,31,0.08),inset_0_0_0_1px_rgba(0,0,0,0.06)]">
+        {homeSections.map((section) => <button key={section.id} type="button" onClick={() => livePreview?.selectSection(section.id)} className="flex min-h-14 w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-canvas active:bg-brand-50"><span><span className="block text-sm font-bold text-ink">{labelFor(section)}</span><span className="mt-0.5 block text-xs text-muted">{descriptions[labelFor(section)]}</span></span><ChevronRight size={17} className="shrink-0 text-muted" /></button>)}
+      </div>
     </div>
   );
 }

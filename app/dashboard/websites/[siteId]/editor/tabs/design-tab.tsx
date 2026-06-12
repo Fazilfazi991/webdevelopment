@@ -1,7 +1,10 @@
+"use client";
+
 import { CheckCircle2, Eye, LayoutTemplate, Palette } from "lucide-react";
 import { saveThemeAction } from "@/app/editor-actions";
 import { Button, ButtonLink } from "@/components/ui/button";
 import type { loadEditorContext } from "@/lib/site-editor/editor-loader";
+import { useLivePreview } from "@/components/site-editor/live-preview-context";
 
 const colours = [
   { value: "#0f766e", label: "Teal" },
@@ -13,6 +16,7 @@ const colours = [
 
 export function DesignTab({ siteId, context }: { siteId: string; context: Awaited<ReturnType<typeof loadEditorContext>> }) {
   const theme = context.themeOverride;
+  const livePreview = useLivePreview();
   return (
     <div className="grid gap-5">
       <div className="rounded-lg border border-line bg-canvas p-4">
@@ -25,19 +29,19 @@ export function DesignTab({ siteId, context }: { siteId: string; context: Awaite
         <input type="hidden" name="secondaryColor" value={theme?.secondary_color ?? "#d8c3a5"} />
         <input type="hidden" name="accentColor" value={theme?.accent_color ?? "#134e4a"} />
 
-        <fieldset disabled={!context.canEdit} className="grid gap-3"><legend className="text-sm font-bold text-ink">Brand Colour</legend><div className="flex flex-wrap gap-3">{colours.map((colour) => <label key={colour.value} className="cursor-pointer text-center"><input className="peer sr-only" type="radio" name="primaryColor" value={colour.value} defaultChecked={(theme?.primary_color ?? "#0f766e").toLowerCase() === colour.value} /><span className="flex size-11 items-center justify-center rounded-full border-4 border-white shadow ring-1 ring-line peer-checked:ring-4 peer-checked:ring-brand-200" style={{ backgroundColor: colour.value }} /><span className="mt-1 block text-[10px] font-semibold text-muted">{colour.label}</span></label>)}</div></fieldset>
+        <fieldset disabled={!context.canEdit} className="grid gap-3"><legend className="text-sm font-bold text-ink">Brand Colour</legend><div className="flex flex-wrap gap-3">{colours.map((colour) => <label key={colour.value} className="cursor-pointer text-center"><input className="peer sr-only" type="radio" name="primaryColor" value={colour.value} defaultChecked={(theme?.primary_color ?? "#0f766e").toLowerCase() === colour.value} onChange={() => livePreview?.patchTheme({ primaryColor: colour.value })} /><span className="flex size-11 items-center justify-center rounded-full border-4 border-white shadow ring-1 ring-line peer-checked:ring-4 peer-checked:ring-brand-200" style={{ backgroundColor: colour.value }} /><span className="mt-1 block text-[10px] font-semibold text-muted">{colour.label}</span></label>)}</div></fieldset>
 
         <fieldset disabled={!context.canEdit} className="grid gap-2"><legend className="text-sm font-bold text-ink">Font Style</legend><div className="grid grid-cols-3 gap-2">{[
           ["modern_clean", "Modern"], ["professional_sans", "Professional"], ["classic_corporate", "Elegant"]
-        ].map(([value,label]) => <label key={value}><input className="peer sr-only" type="radio" name="fontPreset" value={value} defaultChecked={(theme?.font_preset ?? "professional_sans") === value} /><span className="flex min-h-12 cursor-pointer items-center justify-center rounded-lg border border-line px-2 text-xs font-bold text-muted peer-checked:border-brand-600 peer-checked:bg-brand-50 peer-checked:text-brand-800">{label}</span></label>)}</div></fieldset>
+        ].map(([value,label]) => <label key={value}><input className="peer sr-only" type="radio" name="fontPreset" value={value} defaultChecked={(theme?.font_preset ?? "professional_sans") === value} onChange={() => livePreview?.patchTheme({ fontPreset: value as "modern_clean" | "professional_sans" | "classic_corporate" })} /><span className="flex min-h-12 cursor-pointer items-center justify-center rounded-lg border border-line px-2 text-xs font-bold text-muted peer-checked:border-brand-600 peer-checked:bg-brand-50 peer-checked:text-brand-800">{label}</span></label>)}</div></fieldset>
 
         <fieldset disabled={!context.canEdit} className="grid gap-2"><legend className="text-sm font-bold text-ink">Button Style</legend><div className="grid grid-cols-3 gap-2">{[
           ["pill", "Rounded"], ["soft_rounded", "Soft"], ["square", "Square"]
-        ].map(([value,label]) => <label key={value}><input className="peer sr-only" type="radio" name="buttonStyle" value={value} defaultChecked={(theme?.button_style ?? "soft_rounded") === value} /><span className="flex min-h-12 cursor-pointer items-center justify-center rounded-lg border border-line px-2 text-xs font-bold text-muted peer-checked:border-brand-600 peer-checked:bg-brand-50 peer-checked:text-brand-800">{label}</span></label>)}</div></fieldset>
+        ].map(([value,label]) => <label key={value}><input className="peer sr-only" type="radio" name="buttonStyle" value={value} defaultChecked={(theme?.button_style ?? "soft_rounded") === value} onChange={() => livePreview?.patchTheme({ buttonStyle: value as "square" | "soft_rounded" | "pill" })} /><span className="flex min-h-12 cursor-pointer items-center justify-center rounded-lg border border-line px-2 text-xs font-bold text-muted peer-checked:border-brand-600 peer-checked:bg-brand-50 peer-checked:text-brand-800">{label}</span></label>)}</div></fieldset>
 
         <fieldset disabled={!context.canEdit} className="grid gap-2"><legend className="text-sm font-bold text-ink">Spacing</legend><div className="grid grid-cols-3 gap-2">{[
           ["minimal", "Compact"], ["balanced", "Comfortable"], ["rounded", "Spacious"]
-        ].map(([value,label]) => <label key={value}><input className="peer sr-only" type="radio" name="radiusPreset" value={value} defaultChecked={(theme?.radius_preset ?? "balanced") === value} /><span className="flex min-h-12 cursor-pointer items-center justify-center rounded-lg border border-line px-2 text-xs font-bold text-muted peer-checked:border-brand-600 peer-checked:bg-brand-50 peer-checked:text-brand-800">{label}</span></label>)}</div></fieldset>
+        ].map(([value,label]) => <label key={value}><input className="peer sr-only" type="radio" name="radiusPreset" value={value} defaultChecked={(theme?.radius_preset ?? "balanced") === value} onChange={() => livePreview?.patchTheme({ radiusPreset: value as "minimal" | "balanced" | "rounded" })} /><span className="flex min-h-12 cursor-pointer items-center justify-center rounded-lg border border-line px-2 text-xs font-bold text-muted peer-checked:border-brand-600 peer-checked:bg-brand-50 peer-checked:text-brand-800">{label}</span></label>)}</div></fieldset>
 
         <p className="flex gap-2 rounded-lg bg-emerald-50 p-3 text-sm leading-6 text-emerald-900"><CheckCircle2 className="mt-1 shrink-0" size={17} />Your content, images and contact details stay the same when you change the website style.</p>
         <Button type="submit" disabled={!context.canEdit}>Save Website Style</Button>

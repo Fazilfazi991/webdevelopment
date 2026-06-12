@@ -1,12 +1,14 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
+import NextImage from "next/image";
 import { saveMediaMetadataAction } from "@/app/editor-actions";
 import { Button } from "@/components/ui/button";
 import { Field, inputClassName } from "@/components/ui/field";
 import { baseSlot, mediaSlotLabel, siteMediaSlots } from "@/lib/site-renderer/media-slots";
 import { createClient } from "@/lib/supabase/client";
 import type { SiteMedia } from "@/lib/types";
+import { useLivePreview } from "@/components/site-editor/live-preview-context";
 
 const supportedTypes = ["image/jpeg", "image/png", "image/webp", "image/svg+xml"];
 const maxFileSize = 5 * 1024 * 1024;
@@ -82,7 +84,24 @@ export function ImageUploader({
   const [replaceMediaId, setReplaceMediaId] = useState(initialReplaceMediaId);
   const [status, setStatus] = useState("");
   const [warning, setWarning] = useState("");
+  const [filePreview, setFilePreview] = useState("");
   const [isPending, startTransition] = useTransition();
+  const livePreview = useLivePreview();
+
+  useEffect(() => () => { if (filePreview) URL.revokeObjectURL(filePreview); }, [filePreview]);
+
+  async function handleFileChange(file?: File) {
+    if (filePreview) URL.revokeObjectURL(filePreview);
+    if (!file) {
+      setFilePreview("");
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    setFilePreview(url);
+    const dimensions = await imageDimensions(file);
+    setWarning(dimensionWarning(usageType, dimensions.width, dimensions.height));
+    livePreview?.patchImage(usageType, url, altText || file.name);
+  }
 
   async function handleUpload() {
     if (!canEdit) return;
@@ -157,8 +176,9 @@ export function ImageUploader({
         </select>
       </Field>
       <Field label="Image file">
-        <input ref={fileRef} className={inputClassName} type="file" accept={supportedTypes.join(",")} disabled={!canEdit || isPending} />
+        <input ref={fileRef} className={inputClassName} type="file" accept={supportedTypes.join(",")} onChange={(event) => void handleFileChange(event.target.files?.[0])} disabled={!canEdit || isPending} />
       </Field>
+      {filePreview ? <div className="overflow-hidden rounded-lg border border-line bg-canvas"><div className="relative aspect-[16/9] overflow-hidden"><NextImage src={filePreview} alt="Selected image preview" fill unoptimized className="object-cover" /></div><p className="px-3 py-2 text-xs font-semibold text-emerald-800">Previewing before upload</p></div> : null}
       <Field label="Alt text">
         <input className={inputClassName} value={altText} onChange={(event) => setAltText(event.target.value)} maxLength={180} disabled={!canEdit || isPending} />
       </Field>
