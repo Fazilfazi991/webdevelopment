@@ -1,4 +1,5 @@
 import { platformDomain } from "@/lib/publishing/constants";
+import { subdomainSchema } from "@/lib/publishing/schemas";
 
 export type HostResolution =
   | { kind: "internal" }
@@ -17,7 +18,8 @@ export function subdomainFromHost(host: string, wildcardRoot = platformDomain())
   const root = normalizeHostname(wildcardRoot);
   if (!cleanHost || cleanHost === root || !cleanHost.endsWith(`.${root}`)) return null;
   const slug = cleanHost.slice(0, -(root.length + 1));
-  return slug.includes(".") ? null : slug;
+  if (slug.includes(".")) return null;
+  return subdomainSchema.safeParse(slug).success ? slug : null;
 }
 
 export function customDomainFromHost(host: string, wildcardRoot = platformDomain()) {
@@ -33,6 +35,7 @@ export function resolveHostRequest({ host, pathname, appHost = "webdevelopment-v
   const isAppHost = hostname === normalizeHostname(appHost) || hostname === "localhost" || hostname === "127.0.0.1";
   if (isAppHost) {
     if (parts[0] === "sites" || !parts[0] || internalRoots.has(parts[0])) return { kind: "internal" };
+    if (!subdomainSchema.safeParse(parts[0]).success) return { kind: "internal" };
     return { kind: "platform-path", slug: parts[0], pagePath: `/${parts.slice(1).join("/")}` };
   }
   const slug = subdomainFromHost(hostname, wildcardRoot);

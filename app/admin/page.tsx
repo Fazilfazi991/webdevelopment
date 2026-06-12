@@ -2,6 +2,7 @@ import { Card, EmptyState } from "@/components/ui/card";
 import { requireAdmin } from "@/lib/data";
 import type { Site } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
+import Link from "next/link";
 
 export default async function AdminPage() {
   const { supabase } = await requireAdmin();
@@ -60,6 +61,7 @@ export default async function AdminPage() {
           <Card key={label} className="p-5">
             <p className="text-sm font-semibold text-muted">{label}</p>
             <p className="mt-3 text-3xl font-bold text-ink">{value}</p>
+            {label === "Domains" ? <Link href="/admin/domains" className="mt-3 inline-flex text-sm font-bold text-brand-700">Open diagnostics</Link> : null}
           </Card>
         ))}
       </section>
