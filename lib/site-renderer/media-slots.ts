@@ -17,6 +17,7 @@ export const siteMediaSlots = [
   "gallery:project-03",
   "gallery:project-04",
   "favicon",
+  "social-share",
   "general"
 ] as const;
 
@@ -87,6 +88,7 @@ export function mediaSlotLabel(slot: SiteMediaSlot | string) {
     "gallery:project-03": "Gallery: Project 03",
     "gallery:project-04": "Gallery: Project 04",
     favicon: "Favicon",
+    "social-share": "Social share image",
     general: "General library"
   };
   return labels[slot as SiteMediaSlot] ?? "General library";

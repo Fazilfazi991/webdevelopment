@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "smoke:routes": "node scripts/smoke-routes.cjs"
+    "smoke:routes": "node scripts/smoke-routes.cjs",
+    "smoke:design-system": "node scripts/smoke-design-system.cjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",

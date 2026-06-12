@@ -1,0 +1,21 @@
+import Image from "next/image";
+import { CheckCircle2, Monitor, Smartphone } from "lucide-react";
+import { notFound } from "next/navigation";
+import { applyDesignRecipeAction } from "@/app/design-actions";
+import { Button, ButtonLink } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { getPreset, getRecipe } from "@/lib/design-system/catalog";
+import { previewAssetManifest } from "@/lib/design-system/preview-manifest";
+import { requireSiteSetup } from "@/lib/setup";
+
+export default async function RecipePreviewPage({ params, searchParams }: { params: { siteId: string; recipeId: string }; searchParams: { error?: string } }) {
+  const { site } = await requireSiteSetup(params.siteId); const recipe = getRecipe(params.recipeId); if (!recipe || !["approved", "published"].includes(recipe.status)) notFound();
+  const preset = getPreset(recipe.stylePresetId); const assets = previewAssetManifest[recipe.slug] as Record<string, string>;
+  return <div className="mx-auto max-w-7xl space-y-7"><div className="flex flex-wrap items-start justify-between gap-4"><div><ButtonLink href={`/dashboard/websites/${site.id}/design`} variant="ghost">Back to designs</ButtonLink><h1 className="mt-3 text-3xl font-bold text-ink">{recipe.name}</h1><p className="mt-2 max-w-2xl text-muted">{recipe.description}</p></div><form action={applyDesignRecipeAction}><input type="hidden" name="siteId" value={site.id} /><input type="hidden" name="recipeSlug" value={recipe.slug} /><Button type="submit" className="min-h-12 px-6">Use This Design</Button></form></div>
+    {searchParams.error ? <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-800">{searchParams.error}</div> : null}
+    <Card className="overflow-hidden"><div className="flex flex-wrap items-center justify-between gap-3 border-b border-line p-4"><div className="flex gap-2"><span className="inline-flex items-center gap-2 rounded-lg bg-brand-50 px-3 py-2 text-sm font-bold text-brand-800"><Monitor size={16} />Desktop</span><span className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-muted"><Smartphone size={16} />Mobile</span></div><a href={recipe.previewAsset} target="_blank" className="text-sm font-bold text-brand-700">Open Full Preview</a></div><div className="relative aspect-[16/9] bg-slate-100"><Image src={recipe.previewAsset} alt={`${recipe.name} desktop preview`} fill priority sizes="100vw" className="object-cover object-top" /></div></Card>
+    <section><h2 className="text-xl font-bold text-ink">Page screenshots</h2><div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">{recipe.includedPages.map((page) => <Card key={page} className="overflow-hidden"><div className="relative aspect-[3/4]"><Image src={assets[`page-${page.toLowerCase()}`]} alt={`${page} page`} fill sizes="20vw" className="object-cover object-top" /></div><p className="p-3 text-sm font-bold text-ink">{page}</p></Card>)}</div></section>
+    <section><h2 className="text-xl font-bold text-ink">Homepage section previews</h2><div className="mt-3 grid gap-4 md:grid-cols-2">{["hero", "services", "projects", "contact", "footer"].map((name) => <Card key={name} className="overflow-hidden"><div className="relative aspect-[16/9]"><Image src={assets[`section-${name}`]} alt={`${name} section`} fill sizes="50vw" className="object-cover" /></div></Card>)}</div></section>
+    <section className="grid gap-5 md:grid-cols-2"><Card className="p-5"><h2 className="font-bold text-ink">Included features</h2><div className="mt-3 grid gap-2">{["Responsive mobile-first layout", "Exact media-slot mapping", "WhatsApp action", "Content-safe recipe switching", "Published snapshot protection"].map((item) => <p key={item} className="flex items-center gap-2 text-sm text-muted"><CheckCircle2 size={16} className="text-emerald-600" />{item}</p>)}</div></Card><Card className="p-5"><h2 className="font-bold text-ink">Style preset</h2><p className="mt-2 text-sm text-muted">{preset.name}: {preset.description}</p><div className="mt-4 flex gap-2">{[preset.colors.primary, preset.colors.secondary, preset.colors.accent, preset.colors.surface].map((color) => <span key={color} className="size-10 rounded-full border border-line" style={{ backgroundColor: color }} />)}</div></Card></section>
+  </div>;
+}
