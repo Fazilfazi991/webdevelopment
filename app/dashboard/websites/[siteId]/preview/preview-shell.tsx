@@ -92,8 +92,8 @@ export async function WebsitePreviewShell({
           </div>
         </div>
       ) : null}
-      <div className="mx-auto min-w-0 overflow-x-hidden px-0 py-4 sm:px-4">
-        <div className={cn("relative mx-auto min-h-[70vh] min-w-0 overflow-x-hidden overflow-y-auto border-y border-line bg-white shadow-soft sm:rounded-app sm:border [&_.fixed]:absolute", previewDeviceClass(device))}>
+      <div className={cn("mx-auto min-w-0 overflow-x-hidden", device === "mobile" ? "p-0" : "px-0 py-4 sm:px-4")}>
+        <div className={cn("relative mx-auto min-h-[calc(100vh-57px)] min-w-0 overflow-x-hidden overflow-y-auto bg-white [&_.fixed]:absolute", device === "mobile" ? "border-0 shadow-none" : "border-y border-line shadow-soft sm:rounded-app sm:border", previewDeviceClass(device))}>
           <SiteRenderer preview={result.preview} pageSlug={activePage.page_slug} />
         </div>
       </div>

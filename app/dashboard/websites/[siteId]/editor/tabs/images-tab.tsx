@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ImageUploader } from "@/app/dashboard/websites/[siteId]/editor/tabs/image-uploader";
 import { mediaSlotLabel } from "@/lib/site-renderer/media-slots";
+import { technicalServicesImagePack } from "@/lib/site-renderer/image-packs";
 import type { loadEditorContext } from "@/lib/site-editor/editor-loader";
 import type { SiteMedia } from "@/lib/types";
 
@@ -24,20 +25,14 @@ const PRIMARY_SLOTS: SiteMedia["usage_type"][] = [
   "favicon"
 ];
 
-const TEMPLATE_DEFAULTS: Partial<Record<SiteMedia["usage_type"], string>> = {
-  hero: "/templates/technical-services-modern/hero.webp",
-  about: "/templates/technical-services-modern/about.webp",
-  "service:ac-maintenance": "/templates/technical-services-modern/services/ac-maintenance.webp",
-  "service:electrical": "/templates/technical-services-modern/services/electrical.webp",
-  "service:plumbing": "/templates/technical-services-modern/services/plumbing.webp",
-  "service:painting": "/templates/technical-services-modern/services/painting.webp",
-  "service:interior-repairs": "/templates/technical-services-modern/services/interior-repairs.webp",
-  "service:preventive-maintenance": "/templates/technical-services-modern/services/preventive-maintenance.webp",
-  "gallery:project-01": "/templates/technical-services-modern/projects/project-01.webp",
-  "gallery:project-02": "/templates/technical-services-modern/projects/project-02.webp",
-  "gallery:project-03": "/templates/technical-services-modern/projects/project-03.webp",
-  "gallery:project-04": "/templates/technical-services-modern/projects/project-04.webp"
-};
+const TEMPLATE_DEFAULTS = technicalServicesImagePack.images;
+
+const SLOT_GROUPS = [
+  { title: "Brand", slots: ["logo", "favicon"] as SiteMedia["usage_type"][] },
+  { title: "Main website", slots: ["hero", "about"] as SiteMedia["usage_type"][] },
+  { title: "Services", slots: PRIMARY_SLOTS.filter((slot) => slot.startsWith("service:")) },
+  { title: "Projects", slots: PRIMARY_SLOTS.filter((slot) => slot.startsWith("gallery:")) }
+];
 
 const RECOMMENDED_DIMS: Partial<Record<SiteMedia["usage_type"], string>> = {
   logo: "300 × 120 px, PNG/SVG preferred",
@@ -144,8 +139,27 @@ export function ImagesTab({
   organizationId: string;
   context: Awaited<ReturnType<typeof loadEditorContext>>;
 }) {
+  const uploadedSlots = new Set(context.media.filter((item) => item.signed_url).map((item) => item.usage_type));
+  const contentSlots = PRIMARY_SLOTS.filter((slot) => slot !== "logo" && slot !== "favicon");
+  const customizedCount = contentSlots.filter((slot) => uploadedSlots.has(slot)).length;
+  const readyCount = contentSlots.filter((slot) => uploadedSlots.has(slot) || TEMPLATE_DEFAULTS[slot]).length;
+  const completion = Math.round((readyCount / contentSlots.length) * 100);
+
   return (
     <div className="grid gap-4">
+      <Card className="p-4">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.12em] text-brand-700">Image completion</p>
+            <h2 className="mt-1 text-lg font-bold text-ink">{completion}% ready</h2>
+            <p className="mt-1 text-sm text-muted">Professional defaults cover every key section. You have customized {customizedCount} of {contentSlots.length} photos.</p>
+          </div>
+          <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-800">Ready with defaults</span>
+        </div>
+        <div className="mt-4 h-2 overflow-hidden rounded-full bg-canvas" role="progressbar" aria-label="Website image completion" aria-valuenow={completion} aria-valuemin={0} aria-valuemax={100}>
+          <div className="h-full rounded-full bg-brand-700 transition-[width]" style={{ width: `${completion}%` }} />
+        </div>
+      </Card>
       {/* Upload a new image */}
       <Card className="p-4">
         <h2 className="font-bold text-ink">Add a photo</h2>
@@ -167,22 +181,18 @@ export function ImagesTab({
         <p className="mt-1 text-sm leading-6 text-muted">
           Replace any photo below. Removing your photo restores the original design image.
         </p>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {PRIMARY_SLOTS.map((slot) => {
-            const uploaded = context.media.find((m) => m.usage_type === slot && m.signed_url) ?? null;
-            return (
-              <ImageSlotCard
-                key={slot}
-                slot={slot}
-                uploadedItem={uploaded}
-                templateDefault={TEMPLATE_DEFAULTS[slot]}
-                recommendedDims={RECOMMENDED_DIMS[slot]}
-                siteId={siteId}
-                organizationId={organizationId}
-                canEdit={context.canEdit}
-              />
-            );
-          })}
+        <div className="mt-5 grid gap-7">
+          {SLOT_GROUPS.map((group) => (
+            <section key={group.title}>
+              <h3 className="text-sm font-bold text-ink">{group.title}</h3>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {group.slots.map((slot) => {
+                  const uploaded = context.media.find((m) => m.usage_type === slot && m.signed_url) ?? null;
+                  return <ImageSlotCard key={slot} slot={slot} uploadedItem={uploaded} templateDefault={TEMPLATE_DEFAULTS[slot]} recommendedDims={RECOMMENDED_DIMS[slot]} siteId={siteId} organizationId={organizationId} canEdit={context.canEdit} />;
+                })}
+              </div>
+            </section>
+          ))}
         </div>
       </Card>
     </div>

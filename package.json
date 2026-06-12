@@ -9,7 +9,8 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "smoke:routes": "node scripts/smoke-routes.cjs",
-    "smoke:design-system": "node scripts/smoke-design-system.cjs"
+    "smoke:design-system": "node scripts/smoke-design-system.cjs",
+    "verify:design-media": "node scripts/verify-design-media-persistence.cjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",

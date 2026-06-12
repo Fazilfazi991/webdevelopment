@@ -21,6 +21,7 @@ import type {
   testimonialsSchema,
   whyChooseSchema
 } from "@/lib/site-renderer/section-schemas";
+import { technicalFallback } from "@/lib/site-renderer/image-packs";
 
 function hrefFor(href: string) {
   if (href.startsWith("http") || href.startsWith("#")) return href;
@@ -61,19 +62,20 @@ function SectionIntro({ eyebrow, title, body, centered = false }: { eyebrow?: st
   );
 }
 
-function ImageFrame({ image, priority = false }: { image?: { src: string; alt: string }; priority?: boolean }) {
-  if (!image) return <div className="aspect-[4/3] rounded-[var(--site-card-radius)] bg-[var(--site-surface)]" />;
-  if (image.src.startsWith("http")) {
+function ImageFrame({ image, fallbackSrc, fallbackAlt = "Professional technical services" , priority = false }: { image?: { src: string; alt: string }; fallbackSrc?: string; fallbackAlt?: string; priority?: boolean }) {
+  const resolved = image ?? (fallbackSrc ? { src: fallbackSrc, alt: fallbackAlt } : undefined);
+  if (!resolved) return null;
+  if (resolved.src.startsWith("http") || resolved.src.startsWith("blob:")) {
     return (
       <div className="relative aspect-[4/3] overflow-hidden rounded-[var(--site-card-radius)] bg-[var(--site-surface)]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={image.src} alt={image.alt} className="h-full w-full object-cover" />
+        <img src={resolved.src} alt={resolved.alt} className="h-full w-full object-cover" />
       </div>
     );
   }
   return (
     <div className="relative aspect-[4/3] overflow-hidden rounded-[var(--site-card-radius)] bg-[var(--site-surface)]">
-      <Image src={image.src} alt={image.alt} fill priority={priority} sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" />
+      <Image src={resolved.src} alt={resolved.alt} fill priority={priority} sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" />
     </div>
   );
 }
@@ -134,7 +136,7 @@ export function HeroSplit({ content }: { content: z.infer<typeof heroSplitSchema
             </ul>
           ) : null}
         </div>
-        <ImageFrame image={content.image} priority />
+        <ImageFrame image={content.image} fallbackSrc={technicalFallback("hero")} fallbackAlt="Technical services team at work" priority />
       </div>
     </section>
   );
@@ -193,7 +195,7 @@ export function ServiceHighlights({ content }: { content: z.infer<typeof service
 }
 
 export function AboutSection({ content, imageSide = "left" }: { content: z.infer<typeof aboutSchema>; imageSide?: "left" | "right" }) {
-  const image = <ImageFrame image={content.image} />;
+  const image = <ImageFrame image={content.image} fallbackSrc={technicalFallback("about")} fallbackAlt="Experienced maintenance professional" />;
   const text = (
     <div className="min-w-0">
       <SectionIntro eyebrow={content.eyebrow} title={content.title} body={content.body} />
@@ -222,9 +224,9 @@ export function ServicesGrid({ content, compact = false }: { content: z.infer<ty
       <div className="mx-auto max-w-7xl px-5 py-16">
         <SectionIntro eyebrow={content.eyebrow} title={content.title} body={content.body} centered />
         <div className="mt-10 grid grid-cols-[repeat(auto-fit,minmax(min(100%,18rem),1fr))] gap-5">
-          {content.items.map((item) => (
+          {content.items.map((item, index) => (
             <article key={item.title} className="min-w-0 overflow-hidden rounded-[var(--site-card-radius)] border border-[var(--site-border)] bg-white shadow-[var(--site-shadow)]">
-              {!compact ? <ImageFrame image={item.image} /> : null}
+              {!compact ? <ImageFrame image={item.image} fallbackSrc={technicalFallback("service", index)} fallbackAlt={item.title} /> : null}
               <div className="p-5">
                 <h3 className="break-words font-[var(--site-heading-font)] text-lg font-bold text-[var(--site-ink)]">{item.title}</h3>
                 <p className="mt-2 break-words text-sm leading-6 text-[var(--site-muted)]">{item.body}</p>
@@ -245,7 +247,7 @@ export function ServicesRows({ content }: { content: z.infer<typeof servicesRows
         <div className="mt-10 grid gap-8">
           {content.items.map((item, index) => (
             <article key={item.title} className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,24rem),1fr))] items-center gap-6 rounded-[var(--site-card-radius)] border border-[var(--site-border)] p-4">
-              <div className={index % 2 ? "md:order-2" : ""}><ImageFrame image={item.image} /></div>
+              <div className={index % 2 ? "md:order-2" : ""}><ImageFrame image={item.image} fallbackSrc={technicalFallback("service", index)} fallbackAlt={item.title} /></div>
               <div className="min-w-0 p-2 md:p-6">
                 <h3 className="break-words font-[var(--site-heading-font)] text-2xl font-bold text-[var(--site-ink)]">{item.title}</h3>
                 <p className="mt-3 break-words leading-7 text-[var(--site-muted)]">{item.body}</p>
@@ -282,9 +284,9 @@ export function ProjectGallery({ content }: { content: z.infer<typeof gallerySch
       <div className="mx-auto max-w-7xl px-5 py-16">
         <SectionIntro eyebrow={content.eyebrow} title={content.title} body={content.body} />
         <div className="mt-10 grid grid-cols-[repeat(auto-fit,minmax(min(100%,18rem),1fr))] gap-5">
-          {content.items.map((item) => (
+          {content.items.map((item, index) => (
             <article key={item.title} className="min-w-0 overflow-hidden rounded-[var(--site-card-radius)] bg-white">
-              <ImageFrame image={item.image} />
+              <ImageFrame image={item.image} fallbackSrc={technicalFallback("gallery", index)} fallbackAlt={item.title} />
               <div className="p-5">
                 <h3 className="break-words font-[var(--site-heading-font)] text-xl font-bold text-[var(--site-ink)]">{item.title}</h3>
                 <p className="mt-2 break-words text-sm leading-6 text-[var(--site-muted)]">{item.body}</p>
@@ -362,8 +364,12 @@ export function ContactMapForm({ content }: { content: z.infer<typeof contactSch
             {content.email ? <p className="flex min-w-0 gap-3"><Mail className="size-5 shrink-0 text-[var(--site-primary)]" /> <span className="break-words">{content.email}</span></p> : null}
             {content.location ? <p className="flex min-w-0 gap-3"><MapPin className="size-5 shrink-0 text-[var(--site-primary)]" /> <span className="break-words">{content.location}</span></p> : null}
           </div>
-          <div className="mt-8 flex aspect-[4/3] items-center justify-center rounded-[var(--site-card-radius)] border border-[var(--site-border)] bg-[var(--site-surface)] text-sm font-semibold text-[var(--site-muted)]">
-            Service area map placeholder
+          <div className="relative mt-8 aspect-[4/3] overflow-hidden rounded-[var(--site-card-radius)] border border-[var(--site-border)] bg-[var(--site-surface)]">
+            <Image src={technicalFallback("gallery", 3) ?? "/templates/technical-services-modern/about.webp"} alt="Technical services available across the local area" fill sizes="(min-width: 768px) 50vw, 100vw" className="object-cover" />
+            <div className="absolute inset-x-4 bottom-4 rounded-[var(--site-button-radius)] bg-white/95 p-4 shadow-[var(--site-shadow)] backdrop-blur">
+              <p className="flex items-center gap-2 text-sm font-bold text-[var(--site-ink)]"><MapPin className="size-4 text-[var(--site-primary)]" />Local service coverage</p>
+              <p className="mt-1 text-xs leading-5 text-[var(--site-muted)]">On-site support for homes, offices, and commercial properties.</p>
+            </div>
           </div>
         </div>
         <form action={canSubmit ? submitLeadAction : undefined} className="grid min-w-0 gap-4 rounded-[var(--site-card-radius)] border border-[var(--site-border)] bg-[var(--site-surface)] p-5" aria-label={content.formTitle ?? "Contact enquiry form"}>
